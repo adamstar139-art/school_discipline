@@ -4,7 +4,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# Page Configuration
+### Page Configuration
 st.set_page_config(
     page_title="برنامج تدوين ومعالجة المخالفات السلوكية",
     page_icon="🏫",
@@ -12,98 +12,49 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-# Custom Styling
+### Custom Styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-    
-    html, body, [class*="css"], div, span, label {
-        font-family: 'Cairo', sans-serif !important;
+    .main {
+        background-color: #f8f9fa;
+    }
+    .stApp {
         direction: rtl;
-        text-align: right;
-    }
-    .main-header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        color: white;
-        padding: 22px;
-        border-radius: 12px;
-        text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    }
-    .main-header h1 {
-        font-size: 20px;
-        font-weight: 800;
-        margin: 0 0 8px 0;
-        color: #ffffff;
-    }
-    .main-header h2 {
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 6px 0;
-        color: #e0e8f5;
-    }
-    .main-header p.developer-credit {
-        font-size: 13px;
-        font-weight: 700;
-        margin: 6px 0 0 0;
-        color: #ffd700;
-    }
-    .card {
-        background-color: #ffffff;
-        padding: 18px;
-        border-radius: 10px;
-        border: 1px solid #e1e8ed;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .stButton>button {
-        background-color: #2a5298;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 12px 24px;
-        border: none;
-        width: 100%;
-        font-size: 16px;
-        min-height: 48px;
-    }
-    .stButton>button:hover {
-        background-color: #1e3c72;
-        color: white;
-    }
-    .stSelectbox div[data-baseweb="select"] {
-        font-size: 16px !important;
-        min-height: 48px !important;
     }
     .print-report {
-        background-color: #fff;
-        border: 2px solid #1e3c72;
-        padding: 25px;
+        background-color: white;
+        padding: 30px;
         border-radius: 10px;
-        color: #000;
-        font-family: 'Cairo', sans-serif;
-    }
-    .table-container {
-        overflow-x: auto;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        font-family: 'Amiri', 'Cairo', sans-serif;
+        color: #333;
     }
     .signatures-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
         gap: 15px;
+        margin-top: 25px;
         text-align: center;
-        margin-top: 20px;
     }
     .sig-col {
-        border: 1px solid #e1e8ed;
+        border: 1px solid #e0e0e0;
         padding: 12px;
         border-radius: 8px;
-        background-color: #ffffff;
+        background-color: #fdfdfd;
+    }
+    .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-container th, .table-container td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: right;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Database Setup & Helper Functions
+### Database Setup & Helper Functions
 DB_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(DB_DIR, 'school_discipline.db')
 
@@ -119,7 +70,7 @@ def init_db():
     """Ensure all required tables exist and populate default teachers and 167 students unconditionally."""
     conn = get_connection()
     c = conn.cursor()
-    
+
     # 1. Teachers Table
     c.execute('''
     CREATE TABLE IF NOT EXISTS teachers (
@@ -127,7 +78,7 @@ def init_db():
         name TEXT UNIQUE NOT NULL
     )
     ''')
-    
+
     # 2. Students Table
     c.execute('''
     CREATE TABLE IF NOT EXISTS students (
@@ -137,7 +88,7 @@ def init_db():
         section TEXT NOT NULL
     )
     ''')
-    
+
     # 3. Incidents Table
     c.execute('''
     CREATE TABLE IF NOT EXISTS incidents (
@@ -158,9 +109,9 @@ def init_db():
         updated_at DATETIME
     )
     ''')
-    
+
     conn.commit()
-    
+
     # Default Teachers (13 Teachers)
     default_teachers = [
         "محمد سامي السعيد", "علي محمد معوض", "أحمد عبد الحميد سعيد",
@@ -169,7 +120,7 @@ def init_db():
         "عماد بكر عارف", "إبراهيم علي العتيبي", "عيسى خالد العويس", "زيد بن علي التميمي"
     ]
     c.executemany("INSERT OR IGNORE INTO teachers (name) VALUES (?)", [(t,) for t in default_teachers])
-    
+
     # Default Students (167 Students)
     default_students = [
         # 1st Intermediate - Section 1 & 2
@@ -213,7 +164,7 @@ def init_db():
         ('1170374993', 'مشاري عثمان سعد ناصر السعد', 'الصف الأول المتوسط', 'فصل 2'),
         ('2380890976', 'وائل - - بولعيش', 'الصف الأول المتوسط', 'فصل 1'),
         ('1170884165', 'يزن محمد علي اليحيى', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170548737', 'يوسف محمد عبدالله الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
+        ('1170582165_2', 'يوسف محمد عبدالله الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
 
         # 2nd Intermediate - Section 1, 2, 3
         ('1166753291', 'ابراهيم بن مبارك بن راشد بن عبدالرحمن السبعان آل موينع', 'الصف الثاني المتوسط', 'فصل 2'),
@@ -345,12 +296,11 @@ def init_db():
         ('1163027392', 'يوسف عبدالله عوض العتيبي', 'الصف الثالث المتوسط', 'فصل 3'),
         ('1168385894', 'يوسف نايف مقعد العتيبي', 'الصف الثالث المتوسط', 'فصل 1')
     ]
-    c.executemany("INSERT OR IGNORE INTO students (id, name, grade, section) VALUES (?, ?, ?, ?)", default_students)
+    
+    # Use INSERT OR REPLACE to ensure no IntegrityError occurs
+    c.executemany("INSERT OR REPLACE INTO students (id, name, grade, section) VALUES (?, ?, ?, ?)", default_students)
     conn.commit()
     conn.close()
-
-# Automatically initialize database at script startup
-init_db()
 
 def fetch_teachers():
     init_db()
@@ -383,11 +333,11 @@ def fetch_students(grade=None, section=None):
     conn.close()
     return df
 
-# Initialize Session State
+### Initialize Session State
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 
-# Code of Conduct Violation Degrees Data according to Saudi Ministry of Education Discipline Rules
+### Code of Conduct Violation Degrees Data according to Saudi Ministry of Education Discipline Rules
 VIOLATION_RULES = {
     "الدرجة الأولى (المخالفات البسيطة)": [
         "عدم الالتزام بالزي المدرسي أو المظهر العام",
@@ -457,32 +407,17 @@ PROCEDURES_BY_DEGREE = {
     ]
 }
 
-# App Header
-st.markdown("""
-<div class="main-header">
-    <h1>تدوين ومعالجة المخالفات السلوكية والانضباط المدرسي والمحافظة على حقوق المتعلم</h1>
-    <h2>متوسطة الثغر النموذجية الأهلية - بنين</h2>
-    <p class="developer-credit">✨ تصميم وتطوير: أ. محمد سامي السعيد ✨</p>
-</div>
-""", unsafe_allow_html=True)
-
-# Sidebar Navigation
+### Sidebar Navigation
 st.sidebar.title("📌 القائمة الرئيسية")
 page = st.sidebar.radio(
     "اختر الشاشة المطلوب الانتقال إليها:",
-    ["👨‍🏫 شاشة المعلم (رصد مخالفة)", "👨‍💼 شاشة وكيل الشؤون المدرسية", "🔍 البحث الشامل عن طالب", "⚙️ إدارة بيانات الطلاب", "🖨️ طباعة وتصدير التقرير"]
+    ["👨🏫 شاشة المعلم (رصد مخالفة)", "👨💼 شاشة وكيل الشؤون المدرسية", "🔍 البحث الشامل عن طالب", "⚙️ إدارة بيانات الطلاب", "🖨️ طباعة وتصدير التقرير"]
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("""
-<div style="text-align: center; background-color: #f0f4f9; padding: 10px; border-radius: 8px; border: 1px solid #d0d7de;">
-    <p style="margin: 0; font-size: 13px; color: #333; font-weight: bold;">💻 تصميم وتطوير البرمجية:</p>
-    <p style="margin: 3px 0 0 0; font-size: 15px; color: #1e3c72; font-weight: 800;">محمد سامي السعيد</p>
-</div>
-""", unsafe_allow_html=True)
 
-# Login handling for Vice Principal Screen ONLY
-if page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
+### Login handling for Vice Principal Screen ONLY
+if page == "👨💼 شاشة وكيل الشؤون المدرسية":
     if not st.session_state.authenticated:
         st.sidebar.markdown("---")
         st.sidebar.subheader("🔒 دخول وكيل المدرسة")
@@ -495,21 +430,24 @@ if page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
             else:
                 st.sidebar.error("كلمة المرور غير صحيحة! يرجى إعادة المحاولة.")
 
-# PAGE 1: Teacher Screen
-if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
+# Automatically initialize database at script startup
+init_db()
+
+### PAGE 1: Teacher Screen
+if page == "👨🏫 شاشة المعلم (رصد مخالفة)":
     st.subheader("📋 شاشة المعلم - رصد المخالفة السلوكية")
     st.info("💡 اختر الصف والفصل لتحديث قائمة الطلاب المنسدلة تلقائياً.")
     
     teachers_list = fetch_teachers()
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         selected_teacher = st.selectbox("1️⃣ اختر اسم المعلم الراصد:", teachers_list, key="t_select")
         selected_grade = st.selectbox("2️⃣ اختر الصف الدراسي:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="g_select")
         selected_section = st.selectbox("3️⃣ اختر الفصل (الشعبة):", ["فصل 1", "فصل 2", "فصل 3"], key="s_select")
         selected_period = st.selectbox("4️⃣ اختر الحصة الدراسية:", [f"الحصة {i}" for i in range(1, 8)], key="p_select")
-    
+
     with col2:
         students_df = fetch_students(selected_grade, selected_section)
         student_options = [f"{row['name']} ({row['id']})" for _, row in students_df.iterrows()]
@@ -524,10 +462,10 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
             
         selected_degree = st.selectbox("6️⃣ اختر درجة المشكلة السلوكية:", list(VIOLATION_RULES.keys()), key="deg_select")
         selected_violation = st.selectbox("7️⃣ اختر المشكلة السلوكية:", VIOLATION_RULES[selected_degree], key="vio_select")
-    
+
     st.markdown("---")
     description = st.text_area("8️⃣ وصف المشكلة التفصيلي (تدوين واقعة المخالفة):", placeholder="يكتب المعلم هنا وصفاً دقيقاً ومفصلاً لما حدث أثناء الحصة...", key="desc_input")
-    
+
     if st.button("📤 إرسال البلاغ لوكيل الشؤون المدرسية", key="submit_incident_btn"):
         if not selected_student_str:
             st.error("❌ يرجى اختيار الطالب من القائمة المنسدلة قبل إرسال البلاغ.")
@@ -548,13 +486,12 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
             conn.close()
             st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل الشؤون المدرسية!")
 
-# PAGE 2: Vice Principal Screen
-elif page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
+### PAGE 2: Vice Principal Screen
+elif page == "👨💼 شاشة وكيل الشؤون المدرسية":
     if not st.session_state.authenticated:
         st.warning("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور في الشريط الجانبي لتسجيل الدخول.")
     else:
-        st.subheader("👨‍💼 شاشة وكيل الشؤون المدرسية - معالجة البلاغات واتخاذ الإجراءات")
-        
+        st.subheader("👨💼 شاشة وكيل الشؤون المدرسية - معالجة البلاغات واتخاذ الإجراءات")
         init_db()
         conn = get_connection()
         incidents_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
@@ -620,12 +557,11 @@ elif page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
                             st.write(f"**الإجراء المتخذ:** {row['action_taken']}")
                             st.write(f"**ملاحظات الوكيل:** {row['vice_notes']}")
 
-# PAGE 3: Student Search
+### PAGE 3: Student Search
 elif page == "🔍 البحث الشامل عن طالب":
     st.subheader("🔍 البحث الشامل عن سجل طالب سلوكي")
-    
     search_query = st.text_input("أدخل اسم الطالب أو رقم هويته للبحث في القاعدة:")
-    
+
     if search_query.strip():
         conn = get_connection()
         st_df = pd.read_sql_query(
@@ -652,17 +588,16 @@ elif page == "🔍 البحث الشامل عن طالب":
                     st.dataframe(inc_df[['id', 'teacher_name', 'period', 'incident_degree', 'incident_type', 'action_taken', 'status', 'created_at']], use_container_width=True)
         conn.close()
 
-# PAGE 4: Student Management
+### PAGE 4: Student Management
 elif page == "⚙️ إدارة بيانات الطلاب":
     st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - حذف - نقل)")
-    
     m_tab0, m_tab1, m_tab2, m_tab3 = st.tabs([
         "📜 عرض قوائم الطلاب والتوزيع", 
         "➕ إضافة طالب جديد", 
         "❌ حذف طالب", 
         "🔄 نقل طالب من فصل لآخر"
     ])
-    
+
     with m_tab0:
         st.markdown("#### 📜 قوائم الطلاب المسجلين حسب الصف والفصل")
         col_v1, col_v2 = st.columns(2)
@@ -754,14 +689,13 @@ elif page == "⚙️ إدارة بيانات الطلاب":
         else:
             st.info("لا يوجد طلاب لنقلهم.")
 
-# PAGE 5: Printing & Exporting Reports
+### PAGE 5: Printing & Exporting Reports
 elif page == "🖨️ طباعة وتصدير التقرير":
     st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
-    
     conn = get_connection()
     inc_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
     conn.close()
-    
+
     if inc_df.empty:
         st.info("لا توجد تقارير مخالفات مسجلة للطباعة.")
     else:
@@ -783,7 +717,7 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                 <h4 style="margin:5px 0; color:#333; font-size: 15px;">متوسطة الثغر النموذجية الأهلية - بنين</h4>
                 <hr style="border: 1px solid #1e3c72; margin: 15px 0;">
                 <h2 style="color:#1e3c72; font-size: 18px; font-weight: 800; margin:10px 0;">
-                    تقرير تدوين ومعالجة المخالفات السلوكية والانضباط المدرسي والمافظة على حقوق المتعلم
+                    تقرير تدوين ومعالجة المخالفات السلوكية والانضباط المدرسي والمحافظة على حقوق المتعلم
                 </h2>
             </div>
             
@@ -871,5 +805,3 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         st.markdown("<br>", unsafe_allow_html=True)
         st.info("💡 لطباعة التقرير أعلاه بصيغة ورقية أو حفظه كملف PDF، يرجى الضغط على زر (Ctrl + P) في لوحة المفاتيح واختيار الحفظ كـ PDF.")
 
-
-       
