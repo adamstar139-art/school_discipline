@@ -88,8 +88,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Database Setup & Helper Functions
-# Store the database file in the same directory as the application script
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'school_discipline.db')
+DB_PATH = 'school_discipline.db'
 
 def get_connection():
     return sqlite3.connect(DB_PATH)
@@ -149,14 +148,14 @@ def init_db():
             "السيد الغريب بدوي", "محمد إبراهيم عبد الرحمن", "أسامة أحمد سالم",
             "عماد بكر عارف", "إبراهيم علي العتيبي", "عيسى خالد العويس", "زيد بن علي التميمي"
         ]
-        c.executemany("INSERT INTO teachers (name) VALUES (?)", [(t,) for t in default_teachers])
+        c.executemany("INSERT OR IGNORE INTO teachers (name) VALUES (?)", [(t,) for t in default_teachers])
         conn.commit()
         
     # Seed Students if empty
     c.execute("SELECT COUNT(*) FROM students")
     if c.fetchone()[0] == 0:
         default_students = [
-            # 1st Intermediate
+            # 1st Intermediate (الصف الأول المتوسط)
             ('1167628468', 'إبراهيم بن محمد بن علي الوهيبي', 'الصف الأول المتوسط', 'فصل 2'),
             ('1170348286', 'الوليد ابن خالد بن فهد العتيبي', 'الصف الأول المتوسط', 'فصل 2'),
             ('1172433185', 'باسل محمد فرج الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
@@ -199,7 +198,7 @@ def init_db():
             ('1170884165', 'يزن محمد علي اليحيى', 'الصف الأول المتوسط', 'فصل 2'),
             ('1170548737', 'يوسف محمد عبدالله الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
 
-            # 2nd Intermediate
+            # 2nd Intermediate (الصف الثاني المتوسط)
             ('1166753291', 'ابراهيم بن مبارك بن راشد بن عبدالرحمن السبعان آل موينع', 'الصف الثاني المتوسط', 'فصل 2'),
             ('1163613795', 'ابراهيم ياسر ابراهيم الحلوى', 'الصف الثاني المتوسط', 'فصل 1'),
             ('1163760935', 'احمد سامي بن احمد العمران', 'الصف الثاني المتوسط', 'فصل 1'),
@@ -264,7 +263,7 @@ def init_db():
             ('1163191222', 'يزيد بن طارق بن علي الحديثي', 'الصف الثاني المتوسط', 'فصل 1'),
             ('1167371093', 'يوسف عايد عواد البلوي', 'الصف الثاني المتوسط', 'فصل 3'),
 
-            # 3rd Intermediate
+            # 3rd Intermediate (الصف الثالث المتوسط)
             ('1158966166', 'أصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1'),
             ('1156933093', 'تركي عبدالعزيز عبدالله المرزوق', 'الصف الثالث المتوسط', 'فصل 2'),
             ('1160223317', 'تركي عثمان عبدالعزيز العثمان', 'الصف الثالث المتوسط', 'فصل 2'),
@@ -458,8 +457,8 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Login handling for Vice Principal & Admin Screens
-if page in ["👨‍💼 شاشة وكيل الشؤون المدرسية", "⚙️ إدارة بيانات الطلاب"]:
+# Password Protection ONLY for Vice Principal Screen
+if page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
     if not st.session_state.authenticated:
         st.sidebar.markdown("---")
         st.sidebar.subheader("🔒 دخول وكيل المدرسة")
@@ -492,9 +491,10 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
             student_options = [f"{row['name']} ({row['id']})" for _, row in students_df.iterrows()]
             
             if student_options:
+                st.info(f"💡 عدد الطلاب المسجلين في ({selected_grade} - {selected_section}): {len(student_options)} طالب")
                 selected_student_str = st.selectbox("اختر اسم الطالب المخالف:", student_options)
             else:
-                st.warning("لا يوجد طلاب مسجلون في هذا الصف والفصل.")
+                st.warning(f"⚠️ لا يوجد طلاب مسجلون في ({selected_grade} - {selected_section}). يرجى التأكد من الصف والفصل.")
                 selected_student_str = None
                 
             selected_degree = st.selectbox("درجة المشكلة السلوكية:", list(VIOLATION_RULES.keys()))
@@ -510,7 +510,6 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
             elif not description.strip():
                 st.error("يرجى تدوين وصف المشكلة السلوكية.")
             else:
-                # Extract Student ID and Name
                 student_name = selected_student_str.split(" (")[0]
                 student_id = selected_student_str.split("(")[1].replace(")", "")
                 
@@ -525,13 +524,14 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
                 conn.close()
                 st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل الشؤون المدرسية!")
 
-# PAGE 2: Vice Principal Screen
+# PAGE 2: Vice Principal Screen (Password Protected)
 elif page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
     if not st.session_state.authenticated:
-        st.warning("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور في القائمة الجانبية لتسجيل الدخول.")
+        st.warning("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور في الشريط الجانبي لتسجيل الدخول.")
     else:
         st.subheader("👨‍💼 شاشة وكيل الشؤون المدرسية - معالجة البلاغات واتخاذ الإجراءات")
         
+        init_db()
         conn = get_connection()
         incidents_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
         conn.close()
@@ -600,6 +600,7 @@ elif page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
 elif page == "🔍 البحث الشامل عن طالب":
     st.subheader("🔍 البحث الشامل عن سجل طالب سلوكي")
     
+    init_db()
     search_query = st.text_input("أدخل اسم الطالب أو رقم هويته للبحث في القاعدة:")
     
     if search_query.strip():
@@ -628,85 +629,131 @@ elif page == "🔍 البحث الشامل عن طالب":
                     st.dataframe(inc_df[['id', 'teacher_name', 'period', 'incident_degree', 'incident_type', 'action_taken', 'status', 'created_at']], use_container_width=True)
         conn.close()
 
-# PAGE 4: Student Management (Add, Delete, Transfer)
+# PAGE 4: Student Data Management (NO PASSWORD REQUIRED)
 elif page == "⚙️ إدارة بيانات الطلاب":
-    if not st.session_state.authenticated:
-        st.warning("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور في القائمة الجانبية لتسجيل الدخول.")
-    else:
-        st.subheader("⚙️ إدارة الطلاب (إضافة - حذف - نقل)")
+    st.subheader("⚙️ إدارة بيانات الطلاب وتوزيع الفصول")
+    
+    init_db()
+    
+    m_tab1, m_tab2, m_tab3, m_tab4 = st.tabs([
+        "📜 عرض قوائم الطلاب والتوزيع", 
+        "➕ إضافة طالب جديد", 
+        "❌ حذف طالب", 
+        "🔄 نقل طالب من فصل لآخر"
+    ])
+    
+    with m_tab1:
+        st.markdown("#### 📜 قوائم الطلاب المسجلين و توزيعهم على الصفوف والفصول")
         
-        m_tab1, m_tab2, m_tab3 = st.tabs(["➕ إضافة طالب جديد", "❌ حذف طالب", "🔄 نقل طالب من فصل لآخر"])
+        all_students_df = fetch_students()
         
-        with m_tab1:
-            st.markdown("#### إضافة طالب جديد لقاعدة البيانات")
-            with st.form("add_student_form", clear_on_submit=True):
-                new_id = st.text_input("رقم الهوية / رقم الطالب (فريد):")
-                new_name = st.text_input("اسم الطالب الرباعي:")
-                new_grade = st.selectbox("الصف الدراسي:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="add_g")
-                new_section = st.selectbox("الفصل (الشعبة):", ["فصل 1", "فصل 2", "فصل 3"], key="add_s")
-                
-                btn_add = st.form_submit_button("حفظ الطالب الجديد")
-                if btn_add:
-                    if not new_id.strip() or not new_name.strip():
-                        st.error("يرجى ملء جميع الحقول المطلوب إدخالها.")
-                    else:
-                        conn = get_connection()
-                        c = conn.cursor()
-                        try:
-                            c.execute("INSERT INTO students (id, name, grade, section) VALUES (?, ?, ?, ?)", (new_id.strip(), new_name.strip(), new_grade, new_section))
-                            conn.commit()
-                            st.success(f"تمت إضافة الطالب ({new_name}) بنجاح!")
-                        except sqlite3.IntegrityError:
-                            st.error("رقم الطالب/الهوية هذا موجود مسبقاً في قاعدة البيانات!")
-                        conn.close()
-                        
-        with m_tab2:
-            st.markdown("#### حذف طالب من قاعدة البيانات")
-            all_st = fetch_students()
-            st_list = [f"{r['name']} ({r['id']})" for _, r in all_st.iterrows()]
+        # Display Stats / Metrics
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+        col_m1.metric("إجمالي الطلاب", f"{len(all_students_df)} طالب")
+        
+        g1_count = len(all_students_df[all_students_df['grade'] == 'الصف الأول المتوسط'])
+        g2_count = len(all_students_df[all_students_df['grade'] == 'الصف الثاني المتوسط'])
+        g3_count = len(all_students_df[all_students_df['grade'] == 'الصف الثالث المتوسط'])
+        
+        col_m2.metric("الصف الأول المتوسط", f"{g1_count} طالب")
+        col_m3.metric("الصف الثاني المتوسط", f"{g2_count} طالب")
+        col_m4.metric("الصف الثالث المتوسط", f"{g3_count} طالب")
+        
+        st.markdown("---")
+        
+        # Filters for student roster
+        f_col1, f_col2 = st.columns(2)
+        with f_col1:
+            filter_grade = st.selectbox("تصفية بحسب الصف الدراسي:", ["الكل", "الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="roster_g")
+        with f_col2:
+            filter_section = st.selectbox("تصفية بحسب الفصل:", ["الكل", "فصل 1", "فصل 2", "فصل 3"], key="roster_s")
             
-            if st_list:
-                selected_del = st.selectbox("اختر الطالب المراد حذفه:", st_list, key="del_st")
-                if st.button("🔴 حذف الطالب نهائياً"):
-                    del_id = selected_del.split("(")[1].replace(")", "")
-                    del_name = selected_del.split(" (")[0]
+        filtered_df = all_students_df.copy()
+        if filter_grade != "الكل":
+            filtered_df = filtered_df[filtered_df['grade'] == filter_grade]
+        if filter_section != "الكل":
+            filtered_df = filtered_df[filtered_df['section'] == filter_section]
+            
+        st.write(f"**عدد الطلاب المعروضين:** `{len(filtered_df)}` طالب")
+        
+        st.dataframe(
+            filtered_df.rename(columns={'id': 'رقم الطالب / الهوية', 'name': 'اسم الطالب الرباعي', 'grade': 'الصف الدراسي', 'section': 'الفصل'}),
+            use_container_width=True,
+            hide_index=True
+        )
+        
+    with m_tab2:
+        st.markdown("#### إضافة طالب جديد لقاعدة البيانات")
+        with st.form("add_student_form", clear_on_submit=True):
+            new_id = st.text_input("رقم الهوية / رقم الطالب (فريد):")
+            new_name = st.text_input("اسم الطالب الرباعي:")
+            new_grade = st.selectbox("الصف الدراسي:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="add_g")
+            new_section = st.selectbox("الفصل (الشعبة):", ["فصل 1", "فصل 2", "فصل 3"], key="add_s")
+            
+            btn_add = st.form_submit_button("حفظ الطالب الجديد")
+            if btn_add:
+                if not new_id.strip() or not new_name.strip():
+                    st.error("يرجى ملء جميع الحقول المطلوب إدخالها.")
+                else:
                     conn = get_connection()
                     c = conn.cursor()
-                    c.execute("DELETE FROM students WHERE id = ?", (del_id,))
-                    conn.commit()
+                    try:
+                        c.execute("INSERT INTO students (id, name, grade, section) VALUES (?, ?, ?, ?)", (new_id.strip(), new_name.strip(), new_grade, new_section))
+                        conn.commit()
+                        st.success(f"تمت إضافة الطالب ({new_name}) بنجاح!")
+                    except sqlite3.IntegrityError:
+                        st.error("رقم الطالب/الهوية هذا موجود مسبقاً في قاعدة البيانات!")
                     conn.close()
-                    st.success(f"تم حذف الطالب ({del_name}) نهائياً من قاعدة البيانات!")
                     st.rerun()
-            else:
-                st.info("لا يوجد طلاب مسجلون حالياً.")
+                    
+    with m_tab3:
+        st.markdown("#### حذف طالب من قاعدة البيانات")
+        all_st = fetch_students()
+        st_list = [f"{r['name']} ({r['id']}) - {r['grade']} ({r['section']})" for _, r in all_st.iterrows()]
+        
+        if st_list:
+            selected_del = st.selectbox("اختر الطالب المراد حذفه:", st_list, key="del_st")
+            if st.button("🔴 حذف الطالب نهائياً"):
+                del_id = selected_del.split("(")[1].split(")")[0]
+                del_name = selected_del.split(" (")[0]
+                conn = get_connection()
+                c = conn.cursor()
+                c.execute("DELETE FROM students WHERE id = ?", (del_id,))
+                conn.commit()
+                conn.close()
+                st.success(f"تم حذف الطالب ({del_name}) نهائياً من قاعدة البيانات!")
+                st.rerun()
+        else:
+            st.info("لا يوجد طلاب مسجلون لحذفهم.")
 
-        with m_tab3:
-            st.markdown("#### نقل طالب من فصل إلى فصل آخر")
-            all_st = fetch_students()
-            st_list_tr = [f"{r['name']} ({r['id']}) - حالياً: {r['grade']} ({r['section']})" for _, r in all_st.iterrows()]
+    with m_tab4:
+        st.markdown("#### نقل طالب من فصل إلى فصل آخر")
+        all_st = fetch_students()
+        st_list_tr = [f"{r['name']} ({r['id']}) - حالياً: {r['grade']} ({r['section']})" for _, r in all_st.iterrows()]
+        
+        if st_list_tr:
+            selected_tr = st.selectbox("اختر الطالب المراد نقله:", st_list_tr, key="tr_st")
+            target_grade = st.selectbox("الصف الدراسي الجديد:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="tr_g")
+            target_section = st.selectbox("الفصل الجديد:", ["فصل 1", "فصل 2", "فصل 3"], key="tr_s")
             
-            if st_list_tr:
-                selected_tr = st.selectbox("اختر الطالب المراد نقله:", st_list_tr, key="tr_st")
-                target_grade = st.selectbox("الصف الدراسي الجديد:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="tr_g")
-                target_section = st.selectbox("الفصل الجديد:", ["فصل 1", "فصل 2", "فصل 3"], key="tr_s")
-                
-                if st.button("🔄 نقل الطالب للفصل الجديد"):
-                    tr_id = selected_tr.split("(")[1].split(")")[0]
-                    tr_name = selected_tr.split(" (")[0]
-                    conn = get_connection()
-                    c = conn.cursor()
-                    c.execute("UPDATE students SET grade = ?, section = ? WHERE id = ?", (target_grade, target_section, tr_id))
-                    conn.commit()
-                    conn.close()
-                    st.success(f"تم نقل الطالب ({tr_name}) إلى ({target_grade} - {target_section}) بنجاح!")
-                    st.rerun()
-            else:
-                st.info("لا يوجد طلاب مسجلون حالياً.")
+            if st.button("🔄 نقل الطالب للفصل الجديد"):
+                tr_id = selected_tr.split("(")[1].split(")")[0]
+                tr_name = selected_tr.split(" (")[0]
+                conn = get_connection()
+                c = conn.cursor()
+                c.execute("UPDATE students SET grade = ?, section = ? WHERE id = ?", (target_grade, target_section, tr_id))
+                conn.commit()
+                conn.close()
+                st.success(f"تم نقل الطالب ({tr_name}) إلى ({target_grade} - {target_section}) بنجاح!")
+                st.rerun()
+        else:
+            st.info("لا يوجد طلاب مسجلون لنقلهم.")
 
 # PAGE 5: Printing & Exporting Reports
 elif page == "🖨️ طباعة وتصدير التقرير":
     st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
     
+    init_db()
     conn = get_connection()
     inc_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
     conn.close()
@@ -818,4 +865,3 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         
         st.markdown("<br>", unsafe_allow_html=True)
         st.info("💡 لطباعة التقرير أعلاه بصيغة ورقية أو حفظه كملف PDF، يرجى الضغط على زر (Ctrl + P) في لوحة المفاتيح واختيار الحفظ كـ PDF.")
-
