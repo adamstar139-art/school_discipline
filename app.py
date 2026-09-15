@@ -55,14 +55,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 ### Database Setup & Helper Functions
-DB_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(DB_DIR, 'school_discipline.db')
+import tempfile
 
 def get_connection():
+    """Get SQLite connection with fallback to /tmp for read-only deployments like Streamlit Cloud."""
     try:
-        return sqlite3.connect(DB_PATH)
+        local_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'school_discipline.db')
+        conn = sqlite3.connect(local_db)
+        conn.execute("CREATE TABLE IF NOT EXISTS _perm_check (id INT)")
+        return conn
     except Exception:
-        import tempfile
         tmp_db = os.path.join(tempfile.gettempdir(), 'school_discipline.db')
         return sqlite3.connect(tmp_db)
 
@@ -804,4 +806,3 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         
         st.markdown("<br>", unsafe_allow_html=True)
         st.info("💡 لطباعة التقرير أعلاه بصيغة ورقية أو حفظه كملف PDF، يرجى الضغط على زر (Ctrl + P) في لوحة المفاتيح واختيار الحفظ كـ PDF.")
-
