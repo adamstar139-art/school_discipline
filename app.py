@@ -1,873 +1,730 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
-import os
-from datetime import datetime
+import sqlite3
+import datetime
+from io import BytesIO
 
-# Page Configuration
+# ==========================================
+# 1. إعداد الصفحة والتصميم الاحترافي (RTL & CSS & Responsive A4)
+# ==========================================
 st.set_page_config(
-    page_title="برنامج تدوين ومعالجة المخالفات السلوكية",
+    page_title="نظام المتابعة الصفية والإشرافية - مدارس الثغر النموذجية",
     page_icon="🏫",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="expanded"
 )
 
-# Custom Styling
+# كود التنسيق الجمالي المتقدم ودعم الجوال والطباعة A4
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-    
-    html, body, [class*="css"], div, span, label {
-        font-family: 'Cairo', sans-serif !important;
-        direction: rtl;
-        text-align: right;
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+
+html, body, [class*="css"], .stApp {
+    font-family: 'Tajawal', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+    background-color: #f8fafc;
+}
+
+/* ترويسة رئيسية جذابة */
+.header-box {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%);
+    color: white;
+    padding: 22px;
+    border-radius: 16px;
+    text-align: center;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 20px rgba(13, 148, 136, 0.2);
+}
+.header-box h1 {
+    color: #ffffff;
+    font-weight: 900;
+    margin: 0;
+    font-size: 26px;
+}
+.header-box h3 {
+    color: #fef08a;
+    margin-top: 8px;
+    font-weight: 700;
+    font-size: 18px;
+}
+
+/* بطاقات التنسيق الممركزة والبيانات الأساسية */
+.centered-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    margin: 0 auto 25px auto;
+    max-width: 1000px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+.centered-header {
+    text-align: center;
+    color: #1e3a8a;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* شكل جمالي متطور للقوائم المنسدلة والحقول */
+div[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+}
+div[data-baseweb="select"] > div:hover {
+    border-color: #0d9488 !important;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
+}
+div[data-baseweb="select"] span {
+    font-family: 'Tajawal', sans-serif !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+}
+
+/* مدخلات النصوص والتواريخ */
+.stTextInput input, .stDateInput input, .stTextArea textarea {
+    border-radius: 10px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    font-family: 'Tajawal', sans-serif !important;
+    text-align: right !important;
+}
+
+/* شارات وشريط دلالات مستويات التقييم */
+.badge-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background-color: #f1f5f9;
+    border-radius: 10px;
+    direction: rtl;
+}
+.badge-item {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+}
+.badge-1 { background-color: #fee2e2; color: #dc2626; }
+.badge-2 { background-color: #fef9c3; color: #ca8a04; }
+.badge-3 { background-color: #e0f2fe; color: #0369a1; }
+.badge-4 { background-color: #dbeafe; color: #1e40af; }
+.badge-5 { background-color: #dcfce7; color: #16a34a; }
+
+/* جدول عناصر التقييم الصفي محاذى لليمين بالكامل */
+.eval-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    direction: rtl !important;
+}
+.eval-table th {
+    background-color: #eff6ff;
+    color: #1e3a8a;
+    padding: 12px 15px;
+    font-weight: 800;
+    font-size: 15px;
+    border-bottom: 2px solid #dbeafe;
+    text-align: right !important;
+}
+.eval-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: right !important;
+}
+
+/* محاذاة أزرار الخيارات الراديو (Radio buttons) لليمين */
+div[role="radiogroup"] {
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    justify-content: flex-end !important;
+    gap: 15px !important;
+}
+
+/* التوافق مع الجوال */
+@media (max-width: 768px) {
+    .header-box h1 { font-size: 20px; }
+    .header-box h3 { font-size: 15px; }
+    .centered-card { padding: 15px; }
+    div[data-testid="column"] { width: 100% !important; margin-bottom: 10px; }
+    div[role="radiogroup"] { gap: 8px !important; }
+}
+
+/* التنسيق المخصص للطباعة بحجم ورقة A4 portrait */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 8mm 8mm 8mm 8mm;
     }
-    .main-header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        color: white;
-        padding: 22px;
-        border-radius: 12px;
-        text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    body, .stApp {
+        background-color: white !important;
+        color: black !important;
     }
-    .main-header h1 {
-        font-size: 20px;
-        font-weight: 800;
-        margin: 0 0 8px 0;
-        color: #ffffff;
+    .no-print, header, footer, [data-testid="stSidebar"], .stTabs [role="tablist"], button {
+        display: none !important;
     }
-    .main-header h2 {
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 6px 0;
-        color: #e0e8f5;
+    .centered-card {
+        box-shadow: none !important;
+        border: 1px solid #666 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 8px !important;
+        margin: 0 !important;
     }
-    .main-header p.developer-credit {
-        font-size: 13px;
-        font-weight: 700;
-        margin: 6px 0 0 0;
-        color: #ffd700;
+    .header-box {
+        background: #1e3a8a !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 12px !important;
+        border-radius: 6px !important;
     }
-    .card {
-        background-color: #ffffff;
-        padding: 18px;
-        border-radius: 10px;
-        border: 1px solid #e1e8ed;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .stButton>button {
-        background-color: #2a5298;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 12px 24px;
-        border: none;
-        width: 100%;
-        font-size: 16px;
-        min-height: 48px;
-    }
-    .stButton>button:hover {
-        background-color: #1e3c72;
-        color: white;
-    }
-    .stSelectbox div[data-baseweb="select"] {
-        font-size: 16px !important;
-        min-height: 48px !important;
-    }
-    .print-report {
-        background-color: #fff;
-        border: 2px solid #1e3c72;
-        padding: 25px;
-        border-radius: 10px;
-        color: #000;
-        font-family: 'Cairo', sans-serif;
-    }
-    .table-container {
-        overflow-x: auto;
-    }
-    .signatures-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 15px;
-        text-align: center;
-        margin-top: 20px;
-    }
-    .sig-col {
-        border: 1px solid #e1e8ed;
-        padding: 12px;
-        border-radius: 8px;
-        background-color: #ffffff;
-    }
+}
 </style>
 """, unsafe_allow_html=True)
 
-# Database Setup & Helper Functions
-DB_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(DB_DIR, 'school_discipline.db')
-
-def get_connection():
-    try:
-        return sqlite3.connect(DB_PATH)
-    except Exception:
-        import tempfile
-        tmp_db = os.path.join(tempfile.gettempdir(), 'school_discipline.db')
-        return sqlite3.connect(tmp_db)
+# ==========================================
+# 2. إنشاء قاعدة البيانات الدائمة (SQLite)
+# ==========================================
+DB_FILE = "thagher_evaluations_v7.db"
 
 def init_db():
-    """Ensure all required tables exist and populate default teachers and 167 students unconditionally."""
-    conn = get_connection()
+    conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    
-    # 1. Teachers Table
     c.execute('''
-    CREATE TABLE IF NOT EXISTS teachers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL
-    )
+        CREATE TABLE IF NOT EXISTS evaluations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            teacher_name TEXT,
+            specialization TEXT,
+            assigned_subjects TEXT,
+            selected_subject TEXT,
+            grade TEXT,
+            class_name TEXT,
+            semester TEXT,
+            session_num TEXT,
+            visit_num TEXT,
+            eval_date TEXT,
+            q1_score INTEGER, q2_score INTEGER, q3_score INTEGER, q4_score INTEGER,
+            q5_score INTEGER, q6_score INTEGER, q7_score INTEGER, q8_score INTEGER,
+            q9_score INTEGER, q10_score INTEGER, q11_score INTEGER, q12_score INTEGER,
+            q13_score INTEGER, q14_score INTEGER, q15_score INTEGER, q16_score INTEGER,
+            q17_score INTEGER, q18_score INTEGER, q19_score INTEGER, q20_score INTEGER,
+            total_score INTEGER,
+            notes TEXT,
+            signed_teacher TEXT,
+            signed_vp TEXT,
+            signed_principal TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
     ''')
-    
-    # 2. Students Table
     c.execute('''
-    CREATE TABLE IF NOT EXISTS students (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        grade TEXT NOT NULL,
-        section TEXT NOT NULL
-    )
+        CREATE TABLE IF NOT EXISTS custom_teachers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            teacher_name TEXT UNIQUE,
+            specialization TEXT,
+            assigned_subjects TEXT
+        )
     ''')
-    
-    # 3. Incidents Table
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS incidents (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        teacher_name TEXT NOT NULL,
-        student_id TEXT NOT NULL,
-        student_name TEXT NOT NULL,
-        grade TEXT NOT NULL,
-        section TEXT NOT NULL,
-        period TEXT NOT NULL,
-        incident_degree TEXT NOT NULL,
-        incident_type TEXT NOT NULL,
-        description TEXT NOT NULL,
-        action_taken TEXT,
-        vice_notes TEXT,
-        status TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME
-    )
-    ''')
-    
-    conn.commit()
-    
-    # Default Teachers (13 Teachers)
-    default_teachers = [
-        "محمد سامي السعيد", "علي محمد معوض", "أحمد عبد الحميد سعيد",
-        "محمد عبد المنعم أبو كيلة", "هيثم رضا عطية", "عماد الدين نصر كرم",
-        "السيد الغريب بدوي", "محمد إبراهيم عبد الرحمن", "أسامة أحمد سالم",
-        "عماد بكر عارف", "إبراهيم علي العتيبي", "عيسى خالد العويس", "زيد بن علي التميمي"
-    ]
-    c.executemany("INSERT OR IGNORE INTO teachers (name) VALUES (?)", [(t,) for t in default_teachers])
-    
-    # Default Students (167 Students)
-    default_students = [
-        # 1st Intermediate - Section 1 & 2
-        ('1167628468', 'إبراهيم بن محمد بن علي الوهيبي', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170348286', 'الوليد ابن خالد بن فهد العتيبي', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1172433185', 'باسل محمد فرج الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1173391556', 'بسام بن عبدالكريم بن عبدالله الحرفان الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
-        ('2395664317', 'بلال عبدالرزاق عيسى العيسى', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1169185053', 'تركي عبدالله مسفر الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170108078', 'تميم فهد عبدالعزيز العزاز', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170970741', 'جاسر بن عبدالله بن منصور المطاطحة الحارثي', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170582165', 'حسام بن محمد بن علي ال رايان البارقي', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1166982427', 'راكان عبدالله يحيى كريري', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1169004353', 'ريان عبدالله جابر الأسمري', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1172590968', 'ريان عبدالله منصور البشير', 'الصف الأول المتوسط', 'فصل 2'),
-        ('2392863888', 'ريان وليد - حلاق', 'الصف الأول المتوسط', 'فصل 2'),
-        ('2446713998', 'زيد زياد عبد اللطيف ابو قبع', 'الصف الأول المتوسط', 'فصل 1'),
-        ('2527104554', 'سامي سعد عباس حمد', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170111759', 'سعد ناصر سعد السيف', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170420473', 'سيف عبدالكريم بريك العصيمي', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1168942108', 'صالح حسن فتحي سندى', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1173182138', 'عبدالرحمن ابراهيم عبدالله الحضيف', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1195559479', 'عبدالعزيز عبدالله عبدالعزيز العمار', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1153310501', 'عبدالله بن سليمان بن عبدالله الراجحي', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170836520', 'عبدالله سعد بن محمد العيشان', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1172448548', 'عبدالله صالح حمد الصفيان', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1171448515', 'علي احمد علي كريري', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170853053', 'علي سعد علي القحطاني', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1172018036', 'عمر عبدالله سعد الجبرين', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170000945', 'فهد ابن احمد بن فهد العثمان', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1167092616', 'فهد عويض ثعيل المطيري', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170413171', 'فهد نايف فهد الحسينان', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170294118', 'فيصل موينع عبدالله بن موينع', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1171524604', 'فيصل ناصر سيف العريفي', 'الصف الأول المتوسط', 'فصل 2'),
-        ('2552851368', 'مازن اسلام احمد ابراهيم موسى', 'الصف الأول المتوسط', 'فصل 1'),
-        ('013609321', 'محمد أحمد علي عقيل', 'الصف الأول المتوسط', 'فصل 1'),
-        ('2502333707', 'محمد اسلام محمد دراز', 'الصف الأول المتوسط', 'فصل 1'),
-        ('2394606749', 'محمد اشرف مسعود ابوخاطر', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170042046', 'محمد بن فيصل بن مصلح الشمراني', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1169174164', 'محمد نايف فراج الدعجاني', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170374993', 'مشاري عثمان سعد ناصر السعد', 'الصف الأول المتوسط', 'فصل 2'),
-        ('2380890976', 'وائل - - بولعيش', 'الصف الأول المتوسط', 'فصل 1'),
-        ('1170884165', 'يزن محمد علي اليحيى', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170548737', 'يوسف محمد عبدالله الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
-
-        # 2nd Intermediate - Section 1, 2, 3
-        ('1166753291', 'ابراهيم بن مبارك بن راشد بن عبدالرحمن السبعان آل موينع', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1163613795', 'ابراهيم ياسر ابراهيم الحلوى', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1163760935', 'احمد سامي بن احمد العمران', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1153756612', 'الوليد عبدالله بن ابراهيم المبدل', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1166911709', 'ثامر عمر ابراهيم عثمان', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('008464815', 'جهاد فارس عبدالقادر حتاوي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1167148251', 'حامد بن محمد بن حامد شباط', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1164599977', 'حسام حسن محمد الشهري', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1169004353_2', 'خالد تركي عايض القحطاني', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1164120600', 'خالد داود بن عابد الحارثي', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1164830562', 'خالد محمد عبدالكريم الخفاجي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1164269209', 'ذياب بن محمد بن ذياب بن محمد ال مريع القحطاني', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1163187972', 'راكان سالم بن محمد بن مسفر القحطاني', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1165839455', 'سطام عبدالعزيز عبدالله العريفي', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1188914319', 'سعد ابن مسفر بن سعد القحطاني', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1165099498', 'سعود بن عبدالله بن سعود السحامي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1171617069', 'سعود خالد عبدالله الحمد', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1163778960', 'سعود سلطان بن هليل العتيبي', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1163458878', 'سعود مشعل بن ابراهيم الشثري', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1167770468', 'سعود ناصر سيف العريفي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('2344500760', 'سعید محمد - باوزير', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1167623758', 'سلطان عبدالله حسن القحطاني', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1164983874', 'طلال بن فهد بن عطيه بالحكم الزهراني', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1166582989', 'طلال محمد منير المهدرس', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('2362260263', 'عبدالرحمن احمد جاسم الحمدي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1164769430', 'عبدالرحمن حمد بن محمد العريفي', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1167893740', 'عبدالرحمن ربيع جابر خبراني', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1159740032', 'عبدالعزيز سعود بن فهد العتيبي', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1167153434', 'عبدالعزيز ماجد راشد الزير', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1164512566', 'عبدالعزيز وليد ناصر بن سعران', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1165143783', 'عبدالكريم مساعد عبدالعزيز الهزاع', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1164277830', 'عبداللطيف ابراهيم محمد الطمره', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1167267341', 'عبدالله بن بندر بن فهد المسيحل', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1165495258', 'عبدالله سامي سعد الحوشاني', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1164747436', 'عبدالمجيد بن محمد بن مسعود آل عايض القحطاني', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('2358022958', 'عز الدين احمد محمد سعد', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1167515020', 'عزام خالد شلهوب بن شلهوب', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1164747014', 'عزام فهد احمد صلوي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('013609088', 'علي أحمد علي عقيل', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1164825802', 'عمر بن سعد بن هلال الشبانات', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('4533080448', 'عمر وليد ياسين درويش علي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1163397811', 'فارس ابن محمد بن سالم بن نويشي الوهبي الحربي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1163537838', 'فارس مشعل عبدالله بن موينع', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1162761306', 'فهد عيسى محمد العيسى', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1160901128', 'فيصل بن عبدالله بن سعود بن عبدالعزيز الجميعة', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1164997858', 'مازن خالد دخيل المطيري', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('2348937422', 'مازن رفعت حاج النيل', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1162168627', 'مبارك صالح مبارك هليل', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1163212978', 'محمد بن عبدالله بن حمد بن ناصر بن عمران', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1172720045', 'محمد بن علي محسن العثيميني', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1161858301', 'محمد عبدالمحسن ناصر الحزام', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1175902442', 'محمد فايز عبدالرحمن بن يوسف', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1165686179', 'مشاري سلطان سالم الشمراني', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1166040053', 'معاذ عبدالله سعود العريفي', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1167081981', 'ناصر حسين محمد ال جبران', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1166803245', 'نايف بن بندر بن خلفان العلوي', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1165668417', 'نواف عبدالعزيز عبدالله المرزوق', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1164387977', 'هادي سلطان هادي القحطاني', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1171868639', 'وائل بن عبدالله بن عامر علي ال عبد الغامدي', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1165002153', 'يزيد بن حسين بن متعب بن محمد كعكم', 'الصف الثاني المتوسط', 'فصل 2'),
-        ('1166629798', 'يزيد بن حمد بن مترك بن محمد ال مسعود القحطاني', 'الصف الثاني المتوسط', 'فصل 3'),
-        ('1163191222', 'يزيد بن طارق بن علي الحديثي', 'الصف الثاني المتوسط', 'فصل 1'),
-        ('1167371093', 'يوسف عايد عواد البلوي', 'الصف الثاني المتوسط', 'فصل 3'),
-
-        # 3rd Intermediate - Section 1, 2, 3
-        ('1158966166', 'أصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1156933093', 'تركي عبدالعزيز عبدالله المرزوق', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1160223317', 'تركي عثمان عبدالعزيز العثمان', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1163525544', 'ثامر وليد بن عبدالعزيز الطليحي', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1160712996', 'خالد بن عبدالرؤوف بن عبدالرحمن بن عبدالله الشنيبر', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1162560054', 'خالد عبدالله خالد الخالدي', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1174188647', 'خالد محمد بن عبدالله ال درعان', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1162308223', 'خالد محمد مسدف معافا', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1159683497', 'راشد احمد فهد ال سعيد', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1159155223', 'راشد سعيد راشد عبدالسلام', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1174226389', 'راشد صالح بن عبدالعزيز الجلوان', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('2310646332', 'راكان ابراهيم محمد ديوان', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1161109093', 'راكان بن عبدالله بن سالم اليافعي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1167756897', 'رواد محمد ابراهيم الخليل', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1161397599', 'ريان ناصر عبدالرحمن المرشود', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1160805899', 'زياد احمد بن علي اللحيد', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1160267124', 'سطام محمد سعود الدوسري', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1163270869', 'سلطان احمد صالح الفتوخ', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1159394046', 'صالح بن محمد بن صالح الميموني المطيري', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1163112129', 'صالح بن ممدوح بن صالح بن خالد الجويعي', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1161085236', 'ضاري صالح مهنا العازمي', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('2508581135', 'عبد الرحمن محمد صلاح بدر الدين', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1158551372', 'عبدالرحمن بدر عبدالرحمن الطريقي', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1195815558', 'عبدالرحمن خالد محمد سعيد', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1162188872', 'عبدالعزيز تركي عبدالعزيز اللهيم', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1160585624', 'عبدالعزيز عبدالله شراز المالكي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1160050678', 'عبدالعزيز عبدالله عايض الأسمري', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1161340763', 'عبدالعزيز عبدالمحسن فهد بن بديع', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1158561843', 'عبدالله تركي عبدالله الأحمد', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1159977451', 'عبدالله عبدالرحمن عبدالله النجراني', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1161021314', 'عبدالله عبيد عبدالله العتيبي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1160857700', 'عبدالله فهد جلويا سالم الشرعي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1171845140', 'عبدالله متعب بن عبدالرحمن الجبرين', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1159200318', 'عبدالمحسن طارق بن عبدالرحمن العروان', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1162387458', 'علي بن خالد بن علي العجيري', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1158128270', 'علي عبدالله علي ال حمود', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('2502333723', 'عماد الدين اسلام محمد دراز', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1162454266', 'عمر فهد محمد السقامي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1161333677', 'فارس وليد بن عبدالله الحوطي', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1158198604', 'فهد بن خالد بن فهد بن عبدالعزيز الزيد', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1161418593', 'فهد عبدالرحمن فهد العتيبي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1163074592', 'فيصل بن عبدالمحسن بن عايض العصيمي العتيبي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1159551264', 'فيصل عبدالرحمن عزيز القحطاني', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1165152107', 'فيصل محمد صالح الفتوخ', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1162325722', 'ماجد فهد عبدالعزيز الكثيري', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1171918236', 'مازن خالد عبدربه الزهراني', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1186515613', 'متعب مطر جمعان الدوسري', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1162461857', 'محمد خالد محمد بن مشرف', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1161288897', 'محمد سعد بن محمد العيشان', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1158815876', 'محمد سلطان عبدالعزيز العبد', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1156334813', 'محمد عبدالعزيز محمد الخالدي', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1166075653', 'محمد مقعد ساير العتيبي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1160693949', 'مشاري ابراهيم عبداللطيف المغربي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1160803878', 'مشاري علي موسى عقيلي', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1161661846', 'مهند عبدالله فهد الزكري', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1162044851', 'مهند ماجد علي كعبي', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1158021137', 'ناصر محمد عبدالله الزريعي', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1161363443', 'نواف سعد بن علي القاسم', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1159852746', 'نواف فهد بن ناصر القحطاني', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1159404795', 'نواف وليد حمد الشعيلان', 'الصف الثالث المتوسط', 'فصل 1'),
-        ('1162274086', 'ياسر تركي اسماعيل مسملي', 'الصف الثالث المتوسط', 'فصل 2'),
-        ('1163027392', 'يوسف عبدالله عوض العتيبي', 'الصف الثالث المتوسط', 'فصل 3'),
-        ('1168385894', 'يوسف نايف مقعد العتيبي', 'الصف الثالث المتوسط', 'فصل 1')
-    ]
-    c.executemany("INSERT OR IGNORE INTO students (id, name, grade, section) VALUES (?, ?, ?, ?)", default_students)
     conn.commit()
     conn.close()
 
-# Automatically initialize database at script startup
 init_db()
 
-def fetch_teachers():
-    init_db()
-    conn = get_connection()
-    df = pd.read_sql_query("SELECT name FROM teachers ORDER BY name", conn)
-    conn.close()
-    return df['name'].tolist()
-
-def fetch_students(grade=None, section=None):
-    init_db()
-    conn = get_connection()
-    query = "SELECT id, name, grade, section FROM students WHERE 1=1"
-    params = []
-    if grade:
-        query += " AND grade = ?"
-        params.append(grade)
-    if section:
-        query += " AND section = ?"
-        params.append(section)
-    query += " ORDER BY name"
-    df = pd.read_sql_query(query, conn, params=params)
-    
-    # Auto-healing: if no students found for a valid class, re-seed database and query again
-    if df.empty:
-        init_db()
-        conn2 = get_connection()
-        df = pd.read_sql_query(query, conn2, params=params)
-        conn2.close()
-        
-    conn.close()
-    return df
-
-# Initialize Session State
-if 'authenticated' not in st.session_state:
-    st.session_state.authenticated = False
-
-# Code of Conduct Violation Degrees Data according to Saudi Ministry of Education Discipline Rules
-VIOLATION_RULES = {
-    "الدرجة الأولى (المخالفات البسيطة)": [
-        "عدم الالتزام بالزي المدرسي أو المظهر العام",
-        "التأخر عن الحضور لصلاة الجماعة أو الدخول للحصة",
-        "النوم داخل الفصل أو أثناء النشاط المدرسي",
-        "استخدام الهاتف المحمول دون إذن داخل الصف",
-        "تناول الأطعمة أو المشروبات داخل الفصل أثناء الشرح"
-    ],
-    "الدرجة الثانية (المخالفات متوسطة الشدة)": [
-        "الهروب من الفصل أو عدم حضور بعض الحصص",
-        "الشجار اللفظي أو التنابز بالألقاب مع الزملاء",
-        "إثارة الفوضى داخل الصف أو في ساحات المدرسة",
-        "إلحاق الضرر الخفيف بممتلكات المدرسة أو الزملاء",
-        "إحضار الأجهزة الإلكترونية والشاشات غير المصرح بها"
-    ],
-    "الدرجة الثالثة (المخالفات الخطيرة)": [
-        "التغيب عن المدرسة بدون عذر مقبول لأيام متتالية",
-        "التلفظ بألفاظ غير لائمة أو الخروج عن الأدب مع المعلم/الكادر",
-        "الاعتداء الجسدي الخفيف أو المشاجرة مع زميل",
-        "إلحاق تلفيات متعمدة بالأجهزة والممتلكات المدرسية",
-        "التوقيع عن ولي الأمر أو تزوير الإشعارات المدرسية"
-    ],
-    "الدرجة الرابعة (المخالفات شديدة الخطورة)": [
-        "الاعتداء الجسدي الصريح على أحد الزملاء أو إلحاق أذى جسدي",
-        "التنمر والتعدي السلوكي الممنهج على الطلاب",
-        "سرقة ممتلكات المدرسة أو المعلمين أو الزملاء",
-        "إحضار السجائر/السجائر الإلكترونية أو تدخينها داخل المدرسة",
-        "مغادرة المدرسة والهروب من السور أثناء اليوم الدراسي"
-    ],
-    "الدرجة الخامسة والسادسة (المخالفات بالغ الخطورة)": [
-        "إحضار أدوات حادة أو خطرة إلى مقر المدرسة",
-        "الاعتداء بالقول أو الفعل على أحد من الكادر التعليمي أو الإداري",
-        "التعمد الشديد في إتلاف وتخريب التجهيزات والمنشآت المدرسية",
-        "الجرائم الإلكترونية كالابتزاز أو التصوير بدون إذن داخل المدرسة"
-    ]
+# ==========================================
+# 3. البيانات الأساسية لقائمة المعلمين والإدارة
+# ==========================================
+DEFAULT_TEACHERS = {
+    "محمد سامي السعيد": {"spec": "مهارات رقمية", "subjects": ["مهارات رقمية"]},
+    "علي محمد معوض": {"spec": "علوم", "subjects": ["علوم"]},
+    "أحمد عبد الحميد سعيد": {"spec": "علوم", "subjects": ["علوم"]},
+    "محمد عبد المنعم أبو كيلة": {"spec": "لغة انجليزية", "subjects": ["تربية فنية", "لغة انجليزية"]},
+    "هيثم رضا عطية": {"spec": "لغة انجليزية", "subjects": ["تربية فنية", "لغة انجليزية"]},
+    "عماد الدين نصر كرم": {"spec": "لغة عربية", "subjects": ["مهارات حياتية", "لغة عربية"]},
+    "السيد الغريب بدوي": {"spec": "لغة عربية", "subjects": ["مهارات حياتية", "لغة عربية"]},
+    "محمد إبراهيم عبد الرحمن": {"spec": "رياضيات", "subjects": ["رياضيات"]},
+    "أسامة أحمد سالم": {"spec": "رياضيات", "subjects": ["مهارات رقمية", "رياضيات"]},
+    "عماد بكر عارف": {"spec": "تربية بدنية", "subjects": ["اجتماعيات", "تربية بدنية"]},
+    "إبراهيم علي العتيبي": {"spec": "دراسات اسلامية", "subjects": ["اجتماعيات", "اسلامية"]},
+    "عيسى خالد العويس": {"spec": "لغة عربية", "subjects": ["اسلامية"]},
+    "زيد بن علي التميمي": {"spec": "شريعة اسلامية", "subjects": ["اسلامية"]}
 }
 
-PROCEDURES_BY_DEGREE = {
-    "الدرجة الأولى (المخالفات البسيطة)": [
-        "التنبيه الشفهي الأول وإشعار الطالب بمخالفته",
-        "التنبيه الشفهي الثاني مع كتابة تعهد خطي على الطالب",
-        "إشعار ولي الأمر هاتفياً بالواقعة وتوثيق ذلك",
-        "خصم درجة واحدة من درجات السلوك والمواظبة"
-    ],
-    "الدرجة الثانية (المخالفات متوسطة الشدة)": [
-        "أخذ تعهد خطي على الطالب بالتزام السلوك الحسني",
-        "استدعاء ولي أمر الطالب وتوقيعه على بالعلم بالإجراء",
-        "تحويل الطالب للموجه الطلابي لدراسة حالته السلوكية",
-        "خصم درجتين من درجات السلوك وتأدية خدمات مدرسة إيجابية"
-    ],
-    "الدرجة الثالثة (المخالفات الخطيرة)": [
-        "استدعاء فوري لولي الأمر وأخذ تعهد خطي مشدد",
-        "إحالة الطالب المباشرة للموجه الطلابي لوضع برنامج تعديل سلوك",
-        "نقل الطالب إلى فصل آخر داخل المدرسة",
-        "خصم (3) درجات من درجات السلوك وإشعار ولي الأمر رسمياً"
-    ],
-    "الدرجة الرابعة (المخالفات شديدة الخطورة)": [
-        "انعقاد لجنة التوجيه والطلاب بالمدرسة لاتخاذ القرار",
-        "خصم (5) درجات من درجات السلوك",
-        "إيقاف الطالب عن الدراسة لمدة لا تتجاوز 3 أيام مع إشعار ولي الأمر",
-        "تحويل الطالب إلى مركز التوجيه والإرشاد بالإدارة التعليمية"
-    ],
-    "الدرجة الخامسة والسادسة (المخالفات بالغ الخطورة)": [
-        "الرفع الفوري لإدارة التعليم بالمنطقة لاتخاذ الإجراء النظامي الشامل",
-        "خصم (10) درجات من مادة السلوك",
-        "نقل الطالب إلى مدرسة أخرى أو الحرمان من الدراسة وفق القواعد"
-    ]
+def get_all_teachers():
+    teachers = DEFAULT_TEACHERS.copy()
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT teacher_name, specialization, assigned_subjects FROM custom_teachers")
+    rows = c.fetchall()
+    conn.close()
+    for r in rows:
+        name, spec, subs = r[0], r[1], r[2]
+        sub_list = [s.strip() for s in subs.split('+') if s.strip()] if '+' in subs else [subs]
+        teachers[name] = {"spec": spec, "subjects": sub_list}
+    return teachers
+
+GRADE_CLASSES_MAP = {
+    "الأول المتوسط": ["1/1", "1/2"],
+    "الثاني المتوسط": ["2/1", "2/2", "2/3"],
+    "الثالث المتوسط": ["3/1", "3/2", "3/3"]
 }
 
-# App Header
+SEMESTERS_LIST = ["الفصل الدراسي الأول", "الفصل الدراسي الثاني"]
+SESSIONS_LIST = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة"]
+VISITS_LIST = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"]
+
+# تهيئة عداد إعادة الضبط للاستمارة الجديدة
+if 'form_reset_count' not in st.session_state:
+    st.session_state['form_reset_count'] = 0
+
+# ==========================================
+# 4. ترويسة البرنامج الرئيسية
+# ==========================================
 st.markdown("""
-<div class="main-header">
-    <h1>تدوين ومعالجة المخالفات السلوكية والانضباط المدرسي والمحافظة على حقوق المتعلم</h1>
-    <h2>متوسطة الثغر النموذجية الأهلية - بنين</h2>
-    <p class="developer-credit">✨ تصميم وتطوير: أ. محمد سامي السعيد ✨</p>
+<div class="header-box">
+    <h1>مدارس الثغر النموذجية الأهلية - القسم المتوسط</h1>
+    <h3>نظام المتابعة الصفية والإشرافية للمعلمين</h3>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar Navigation
-st.sidebar.title("📌 القائمة الرئيسية")
-page = st.sidebar.radio(
-    "اختر الشاشة المطلوب الانتقال إليها:",
-    ["👨‍🏫 شاشة المعلم (رصد مخالفة)", "👨‍💼 شاشة وكيل الشؤون المدرسية", "🔍 البحث الشامل عن طالب", "⚙️ إدارة بيانات الطلاب", "🖨️ طباعة وتصدير التقرير"]
-)
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📝 استمارة تقييم جديدة",
+    "🔍 استرجاع وتعديل / حذف استمارة",
+    "➕ إضافة معلم جديد",
+    "📊 التقارير العامة (Excel / PDF)"
+])
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("""
-<div style="text-align: center; background-color: #f0f4f9; padding: 10px; border-radius: 8px; border: 1px solid #d0d7de;">
-    <p style="margin: 0; font-size: 13px; color: #333; font-weight: bold;">💻 تصميم وتطوير البرمجية:</p>
-    <p style="margin: 3px 0 0 0; font-size: 15px; color: #1e3c72; font-weight: 800;">محمد سامي السعيد</p>
-</div>
-""", unsafe_allow_html=True)
-
-# Login handling for Vice Principal Screen ONLY
-if page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
-    if not st.session_state.authenticated:
-        st.sidebar.markdown("---")
-        st.sidebar.subheader("🔒 دخول وكيل المدرسة")
-        password_input = st.sidebar.text_input("كلمة المرور:", type="password", key="pwd_input")
-        if st.sidebar.button("تسجيل الدخول"):
-            if password_input == "9009":
-                st.session_state.authenticated = True
-                st.sidebar.success("تم تسجيل الدخول بنجاح!")
-                st.rerun()
-            else:
-                st.sidebar.error("كلمة المرور غير صحيحة! يرجى إعادة المحاولة.")
-
-# PAGE 1: Teacher Screen
-if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
-    st.subheader("📋 شاشة المعلم - رصد المخالفة السلوكية")
-    st.info("💡 اختر الصف والفصل لتحديث قائمة الطلاب المنسدلة تلقائياً.")
+# ==========================================
+# التبويب الأول: تقييم معلم جديد
+# ==========================================
+with tab1:
+    st.markdown('<div class="centered-card">', unsafe_allow_html=True)
     
-    teachers_list = fetch_teachers()
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        selected_teacher = st.selectbox("1️⃣ اختر اسم المعلم الراصد:", teachers_list, key="t_select")
-        selected_grade = st.selectbox("2️⃣ اختر الصف الدراسي:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="g_select")
-        selected_section = st.selectbox("3️⃣ اختر الفصل (الشعبة):", ["فصل 1", "فصل 2", "فصل 3"], key="s_select")
-        selected_period = st.selectbox("4️⃣ اختر الحصة الدراسية:", [f"الحصة {i}" for i in range(1, 8)], key="p_select")
-    
-    with col2:
-        students_df = fetch_students(selected_grade, selected_section)
-        student_options = [f"{row['name']} ({row['id']})" for _, row in students_df.iterrows()]
-        
-        st.markdown("---")
-        if student_options:
-            st.success(f"👥 تم تحميل ({len(student_options)}) طالباً مسجلاً في ({selected_grade} - {selected_section})")
-            selected_student_str = st.selectbox("5️⃣ 👤 اختر اسم الطالب المخالف من القائمة المنسدلة:", student_options, key="st_select")
-        else:
-            st.warning(f"⚠️ لا يوجد طلاب مسجلون في ({selected_grade} - {selected_section}). يرجى اختيار شعبة أخرى (مثلاً فصل 1 أو فصل 2).")
-            selected_student_str = None
-            
-        selected_degree = st.selectbox("6️⃣ اختر درجة المشكلة السلوكية:", list(VIOLATION_RULES.keys()), key="deg_select")
-        selected_violation = st.selectbox("7️⃣ اختر المشكلة السلوكية:", VIOLATION_RULES[selected_degree], key="vio_select")
-    
-    st.markdown("---")
-    description = st.text_area("8️⃣ وصف المشكلة التفصيلي (تدوين واقعة المخالفة):", placeholder="يكتب المعلم هنا وصفاً دقيقاً ومفصلاً لما حدث أثناء الحصة...", key="desc_input")
-    
-    if st.button("📤 إرسال البلاغ لوكيل الشؤون المدرسية", key="submit_incident_btn"):
-        if not selected_student_str:
-            st.error("❌ يرجى اختيار الطالب من القائمة المنسدلة قبل إرسال البلاغ.")
-        elif not description.strip():
-            st.error("❌ يرجى تدوين وصف المشكلة السلوكية.")
-        else:
-            student_name = selected_student_str.split(" (")[0]
-            student_id = selected_student_str.split("(")[1].replace(")", "")
-            
-            conn = get_connection()
-            c = conn.cursor()
-            c.execute('''
-            INSERT INTO incidents 
-            (teacher_name, student_id, student_name, grade, section, period, incident_degree, incident_type, description, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (selected_teacher, student_id, student_name, selected_grade, selected_section, selected_period, selected_degree, selected_violation, description.strip(), 'معلقة (بانتظار الإجراء)'))
-            conn.commit()
-            conn.close()
-            st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل الشؤون المدرسية!")
-
-# PAGE 2: Vice Principal Screen
-elif page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
-    if not st.session_state.authenticated:
-        st.warning("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور في الشريط الجانبي لتسجيل الدخول.")
-    else:
-        st.subheader("👨‍💼 شاشة وكيل الشؤون المدرسية - معالجة البلاغات واتخاذ الإجراءات")
-        
-        init_db()
-        conn = get_connection()
-        incidents_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
-        conn.close()
-        
-        if incidents_df.empty:
-            st.info("لا توجد مخالفات سلوكية مرصودة حالياً.")
-        else:
-            pending_df = incidents_df[incidents_df['status'] == 'معلقة (بانتظار الإجراء)']
-            processed_df = incidents_df[incidents_df['status'] != 'معلقة (بانتظار الإجراء)']
-            
-            tab1, tab2 = st.tabs([f"📥 البلاغات الواردة الجديدة ({len(pending_df)})", f"✅ البلاغات المعالجة والمكتملة ({len(processed_df)})"])
-            
-            with tab1:
-                if pending_df.empty:
-                    st.success("لا توجد بلاغات معلقة جديدة.")
-                else:
-                    for _, row in pending_df.iterrows():
-                        with st.expander(f"🚨 بلاغ رقم #{row['id']} - الطالب: {row['student_name']} ({row['grade']} - {row['section']})"):
-                            col_a, col_b = st.columns(2)
-                            with col_a:
-                                st.write(f"**المعلم الراصد:** {row['teacher_name']}")
-                                st.write(f"**الصف والفصل:** {row['grade']} - {row['section']}")
-                                st.write(f"**الحصة:** {row['period']}")
-                                st.write(f"**تاريخ الرصد:** {row['created_at']}")
-                            with col_b:
-                                st.write(f"**درجة المخالفة:** {row['incident_degree']}")
-                                st.write(f"**نوع المخالفة:** {row['incident_type']}")
-                                st.write(f"**وصف المعلم للمشكلة:** {row['description']}")
-                            
-                            st.markdown("---")
-                            st.subheader("⚖️ اتخاذ الإجراء النظامي بحسب قواعد السلوك والمواظبة:")
-                            
-                            deg = row['incident_degree']
-                            procedures_list = PROCEDURES_BY_DEGREE.get(deg, ["تنبيه شفهي", "تعهد خطي", "إشعار ولي الأمر"])
-                            
-                            with st.form(f"process_form_{row['id']}"):
-                                selected_proc = st.selectbox("اختر الإجراء المطلوب اتخاذه:", procedures_list, key=f"proc_{row['id']}")
-                                vice_notes = st.text_area("تدوين ملاحظات وتوجيهات الوكيل:", placeholder="يكتب الوكيل هنا توجيهاته وملاحظاته الخصوصية...", key=f"notes_{row['id']}")
-                                
-                                btn_proc = st.form_submit_button("حفظ وتأكيد الإجراء")
-                                if btn_proc:
-                                    conn = get_connection()
-                                    c = conn.cursor()
-                                    c.execute('''
-                                    UPDATE incidents 
-                                    SET action_taken = ?, vice_notes = ?, status = 'تم اتخاذ الإجراء', updated_at = CURRENT_TIMESTAMP
-                                    WHERE id = ?
-                                    ''', (selected_proc, vice_notes, row['id']))
-                                    conn.commit()
-                                    conn.close()
-                                    st.success("تم اعتماد الإجراء بنجاح وتحديث حالة التقرير!")
-                                    st.rerun()
-
-            with tab2:
-                if processed_df.empty:
-                    st.info("لا توجد بلاغات معالجة حتى الآن.")
-                else:
-                    for _, row in processed_df.iterrows():
-                        with st.expander(f"✅ بلاغ رقم #{row['id']} - الطالب: {row['student_name']} (تم اتخاذ الإجراء)"):
-                            st.write(f"**المعلم الراصد:** {row['teacher_name']} | **الحصة:** {row['period']}")
-                            st.write(f"**المخالفة:** {row['incident_degree']} - {row['incident_type']}")
-                            st.write(f"**الإجراء المتخذ:** {row['action_taken']}")
-                            st.write(f"**ملاحظات الوكيل:** {row['vice_notes']}")
-
-# PAGE 3: Student Search
-elif page == "🔍 البحث الشامل عن طالب":
-    st.subheader("🔍 البحث الشامل عن سجل طالب سلوكي")
-    
-    search_query = st.text_input("أدخل اسم الطالب أو رقم هويته للبحث في القاعدة:")
-    
-    if search_query.strip():
-        conn = get_connection()
-        st_df = pd.read_sql_query(
-            "SELECT * FROM students WHERE name LIKE ? OR id LIKE ?",
-            conn, params=[f"%{search_query}%", f"%{search_query}%"]
-        )
-        
-        if st_df.empty:
-            st.warning("لم يتم العثور على طالب مطابق لكلمة البحث.")
-        else:
-            for _, student in st_df.iterrows():
-                st.markdown(f"### 👤 الطالب: {student['name']} (رقم الهوية/الطالب: `{student['id']}`)")
-                st.write(f"**الصف:** {student['grade']} | **الفصل:** {student['section']}")
-                
-                inc_df = pd.read_sql_query(
-                    "SELECT * FROM incidents WHERE student_id = ? ORDER BY id DESC",
-                    conn, params=[student['id']]
-                )
-                
-                if inc_df.empty:
-                    st.success("✨ هذا الطالب ليس لديه أي مخالفات سلوكية مرصودة في السجل.")
-                else:
-                    st.error(f"⚠️ يوجد عدد ({len(inc_df)}) مخالفة سلوكية مرصودة بحق الطالب:")
-                    st.dataframe(inc_df[['id', 'teacher_name', 'period', 'incident_degree', 'incident_type', 'action_taken', 'status', 'created_at']], use_container_width=True)
-        conn.close()
-
-# PAGE 4: Student Management
-elif page == "⚙️ إدارة بيانات الطلاب":
-    st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - حذف - نقل)")
-    
-    m_tab0, m_tab1, m_tab2, m_tab3 = st.tabs([
-        "📜 عرض قوائم الطلاب والتوزيع", 
-        "➕ إضافة طالب جديد", 
-        "❌ حذف طالب", 
-        "🔄 نقل طالب من فصل لآخر"
-    ])
-    
-    with m_tab0:
-        st.markdown("#### 📜 قوائم الطلاب المسجلين حسب الصف والفصل")
-        col_v1, col_v2 = st.columns(2)
-        with col_v1:
-            v_grade = st.selectbox("اختر الصف لتصفية الطلاب:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="v_g")
-        with col_v2:
-            v_sec = st.selectbox("اختر الفصل:", ["فصل 1", "فصل 2", "فصل 3"], key="v_s")
-        
-        if st.button("🔄 إدراج واستعادة جميع الطلاب الافتراضيين (167 طالب)", key="reseed_btn"):
-            init_db()
-            st.success("تمت إعادة تعبئة قاعدة البيانات بجميع الطلاب الـ 167 بنجاح!")
+    col_h1, col_h2 = st.columns([3, 1])
+    with col_h1:
+        st.markdown('<h2 style="color:#1e3a8a; font-weight:800; margin:0;">📋 البيانات الأساسية للزيارة الصفية</h2>', unsafe_allow_html=True)
+    with col_h2:
+        if st.button("🔄 بدء استمارة جديدة (100 درجة)", type="secondary", use_container_width=True, key="reset_form_btn"):
+            st.session_state['form_reset_count'] += 1
+            if 'notes_input_text' in st.session_state:
+                st.session_state['notes_input_text'] = ""
             st.rerun()
-            
-        v_df = fetch_students(v_grade, v_sec)
-        if v_df.empty:
-            st.warning(f"لا يوجد طلاب مسجلون في ({v_grade} - {v_sec}).")
-        else:
-            st.success(f"إجمالي عدد الطلاب في ({v_grade} - {v_sec}): {len(v_df)} طالب")
-            st.dataframe(v_df[['id', 'name', 'grade', 'section']].rename(columns={
-                'id': 'رقم الطالب/الهوية',
-                'name': 'اسم الطالب الرباعي',
-                'grade': 'الصف الدراسي',
-                'section': 'الفصل'
-            }), use_container_width=True)
-            
-    with m_tab1:
-        st.markdown("#### إضافة طالب جديد لقاعدة البيانات")
-        with st.form("add_student_form", clear_on_submit=True):
-            new_id = st.text_input("رقم الهوية / رقم الطالب (فريد):")
-            new_name = st.text_input("اسم الطالب الرباعي:")
-            new_grade = st.selectbox("الصف الدراسي:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="add_g")
-            new_section = st.selectbox("الفصل (الشعبة):", ["فصل 1", "فصل 2", "فصل 3"], key="add_s")
-            
-            btn_add = st.form_submit_button("حفظ الطالب الجديد")
-            if btn_add:
-                if not new_id.strip() or not new_name.strip():
-                    st.error("يرجى ملء جميع الحقول المطلوب إدخالها.")
-                else:
-                    conn = get_connection()
-                    c = conn.cursor()
-                    try:
-                        c.execute("INSERT INTO students (id, name, grade, section) VALUES (?, ?, ?, ?)", (new_id.strip(), new_name.strip(), new_grade, new_section))
-                        conn.commit()
-                        st.success(f"تمت إضافة الطالب ({new_name}) بنجاح!")
-                    except sqlite3.IntegrityError:
-                        st.error("رقم الطالب/الهوية هذا موجود مسبقاً في قاعدة البيانات!")
-                    conn.close()
-                    
-    with m_tab2:
-        st.markdown("#### حذف طالب من قاعدة البيانات")
-        all_st = fetch_students()
-        st_list = [f"{r['name']} ({r['id']})" for _, r in all_st.iterrows()]
-        
-        if st_list:
-            selected_del = st.selectbox("اختر الطالب المراد حذفه:", st_list, key="del_st")
-            if st.button("🔴 حذف الطالب نهائياً"):
-                del_id = selected_del.split("(")[1].replace(")", "")
-                del_name = selected_del.split(" (")[0]
-                conn = get_connection()
-                c = conn.cursor()
-                c.execute("DELETE FROM students WHERE id = ?", (del_id,))
-                conn.commit()
-                conn.close()
-                st.success(f"تم حذف الطالب ({del_name}) نهائياً من قاعدة البيانات!")
-                st.rerun()
-        else:
-            st.info("لا يوجد طلاب لحذفهم.")
 
-    with m_tab3:
-        st.markdown("#### نقل طالب من فصل إلى فصل آخر")
-        all_st = fetch_students()
-        st_list_tr = [f"{r['name']} ({r['id']}) - حالياً: {r['grade']} ({r['section']})" for _, r in all_st.iterrows()]
+    teachers_data = get_all_teachers()
+    teacher_names = list(teachers_data.keys())
+    
+    cnt = st.session_state['form_reset_count']
+    
+    # اختيار المعلم والربط الديناميكي الفوري بالتخصص والمواد
+    col_top1, col_top2, col_top3 = st.columns(3)
+    
+    with col_top1:
+        selected_teacher = st.selectbox("اختر اسم المعلم:", teacher_names, key=f"eval_teacher_sel_{cnt}")
+        teacher_info = teachers_data[selected_teacher]
+        teacher_spec = teacher_info['spec']
+        st.text_input("التخصص (مرتبط تلقائياً باسم المعلم):", value=teacher_spec, disabled=True, key=f"spec_in_{selected_teacher}_{cnt}")
         
-        if st_list_tr:
-            selected_tr = st.selectbox("اختر الطالب المراد نقله:", st_list_tr, key="tr_st")
-            target_grade = st.selectbox("الصف الدراسي الجديد:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="tr_g")
-            target_section = st.selectbox("الفصل الجديد:", ["فصل 1", "فصل 2", "فصل 3"], key="tr_s")
-            
-            if st.button("🔄 نقل الطالب للفصل الجديد"):
-                tr_id = selected_tr.split("(")[1].split(")")[0]
-                tr_name = selected_tr.split(" (")[0]
-                conn = get_connection()
-                c = conn.cursor()
-                c.execute("UPDATE students SET grade = ?, section = ? WHERE id = ?", (target_grade, target_section, tr_id))
-                conn.commit()
-                conn.close()
-                st.success(f"تم نقل الطالب ({tr_name}) إلى ({target_grade} - {target_section}) بنجاح!")
-                st.rerun()
+    with col_top2:
+        subjects_list = teacher_info['subjects']
+        if len(subjects_list) > 1:
+            selected_subject = st.selectbox("المادة المراد تقييمها في هذه الزيارة:", subjects_list, key=f"sub_sel_{selected_teacher}_{cnt}")
         else:
-            st.info("لا يوجد طلاب لنقلهم.")
+            selected_subject = subjects_list[0]
+            st.text_input("المادة المسندة:", value=selected_subject, disabled=True, key=f"sub_in_{selected_teacher}_{cnt}")
+            
+        selected_semester = st.selectbox("الفصل الدراسي:", SEMESTERS_LIST, key=f"eval_sem_sel_{cnt}")
+        
+    with col_top3:
+        selected_grade = st.selectbox("الصف الدراسي:", list(GRADE_CLASSES_MAP.keys()), key=f"eval_g_sel_{cnt}")
+        available_classes = GRADE_CLASSES_MAP[selected_grade]
+        selected_class = st.selectbox("الفصل:", available_classes, key=f"class_sel_{selected_grade}_{cnt}")
+        
+    col_sub1, col_sub2 = st.columns(2)
+    with col_sub1:
+        selected_session = st.selectbox("الحصة الدراسية:", SESSIONS_LIST, key=f"eval_sess_sel_{cnt}")
+    with col_sub2:
+        selected_visit = st.selectbox("رقم الزيارة:", VISITS_LIST, key=f"eval_v_sel_{cnt}")
+        today_date = st.date_input("التاريخ (ميلادي):", datetime.date.today(), key=f"eval_date_sel_{cnt}")
 
-# PAGE 5: Printing & Exporting Reports
-elif page == "🖨️ طباعة وتصدير التقرير":
-    st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
+    st.markdown("---")
+    st.markdown('<h3>🎯 عناصر التقييم الصفي الـ 20 (افتراضياً 5 درجات لكل بند = 100/100)</h3>', unsafe_allow_html=True)
     
-    conn = get_connection()
-    inc_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
-    conn.close()
+    st.markdown("""
+    <div class="badge-container">
+        <span style="font-weight:800; color:#1e3a8a; margin-left:15px;">مستويات الأداء والدرجات (من 1 إلى 5 درجات لكل بند):</span>
+        <span class="badge-item badge-1">1: ضعيف</span>
+        <span class="badge-item badge-2">2: مقبول</span>
+        <span class="badge-item badge-3">3: جيد</span>
+        <span class="badge-item badge-4">4: جيد جداً</span>
+        <span class="badge-item badge-5">5: متميز</span>
+    </div>
+    """, unsafe_allow_html=True)
     
-    if inc_df.empty:
-        st.info("لا توجد تقارير مخالفات مسجلة للطباعة.")
-    else:
-        report_options = [f"تقرير #{r['id']} - الطالب: {r['student_name']} - تاريخ: {r['created_at']}" for _, r in inc_df.iterrows()]
-        selected_rep = st.selectbox("اختر التقرير المراد معاينته وطباعته:", report_options)
+    # قائمة البنود الـ 20 الكاملة من المصدر
+    rubric_items = [
+        # المجال الأول: التخطيط
+        {"id": "q1", "domain": "التخطيط", "num": 1, "text": "يخطط المعلم/ة للدرس على المنصة تخطيطا متوافقا مع الخطة الفصلية للمقرر."},
+        {"id": "q2", "domain": "التخطيط", "num": 2, "text": "متابعة الواجبات المنزلية وتقديم التغذية الراجعة لها."},
+        {"id": "q3", "domain": "التخطيط", "num": 3, "text": "ادارة مشاركة الطالب/ة الصوتية والمكتوبة بكفاءة."},
+        {"id": "q4", "domain": "التخطيط", "num": 4, "text": "متابعة الطالب/ة وتسجيل الحضور ورصد حالات الغياب في المنصة أو الصف."},
         
-        selected_id = int(selected_rep.split("#")[1].split(" -")[0])
-        conn = get_connection()
-        rep_data = pd.read_sql_query("SELECT * FROM incidents WHERE id = ?", conn, params=[selected_id]).iloc[0]
-        conn.close()
+        # المجال الثاني: التعلم والتعليم
+        {"id": "q5", "domain": "التعلم والتعليم", "num": 5, "text": "ينفذ المعلم/ة إجراءات الدرس وفق خارطة سير الدرس (التمهيد، أنشطة التعلم والتقويم، التقويم الختامي)."},
+        {"id": "q6", "domain": "التعلم والتعليم", "num": 6, "text": "الالتزام باللغة العربية الفصحى عند طرح الأسئلة الصفية."},
+        {"id": "q7", "domain": "التعلم والتعليم", "num": 7, "text": "يطبق المعلم/ة إستراتيجيات تدريس تراعي قدرات المتعلمين والفروق الفردية بينهم وتتسق مع الموقف التعليمي."},
+        {"id": "q8", "domain": "التعلم والتعليم", "num": 8, "text": "يستخدم المعلم/ة أساليب تحفيز تعزز الدافعية لدى المتعلمين."},
+        {"id": "q9", "domain": "التعلم والتعليم", "num": 9, "text": "ينخرط المتعلمون في أنشطة تعلم متنوعة ومتمايزة ويجيبون عن أسئلة صفية تنمي مهارات التفكير العليا."},
+        {"id": "q10", "domain": "التعلم والتعليم", "num": 10, "text": "يحصل المتعلمون على تغذية راجعة تركز على تحسن أدائهم وفق الموقف التعليمي."},
+        {"id": "q11", "domain": "التعلم والتعليم", "num": 11, "text": "يمارس المتعلمون أنشطة أدائية تقيس مدى فهمهم وتمكنهم من المهارات (أنشطة كتابية/ ملفات/ مطويات/ أوراق عمل/ مجسمات /تجارب عملية، إلخ)."},
+        {"id": "q12", "domain": "التعلم والتعليم", "num": 12, "text": "يستخدم المتعلمون أدوات رقمية لجمع المعلومات ويوظفونها في عملية التعلم."},
+        {"id": "q13", "domain": "التعلم والتعليم", "num": 13, "text": "يربط المتعلمون أنشطة التعلم بتطبيقات عملية من واقع الحياة."},
+        {"id": "q14", "domain": "التعلم والتعليم", "num": 14, "text": "يظهر المتعلمون تمكنا من مهارات القراءة والكتابة والحساب، وينمون ثروتهم اللغوية."},
+        {"id": "q15", "domain": "التعلم والتعليم", "num": 15, "text": "يتمكن المتعلمون من المعارف والمهارات في المقرر الدراسي بنسبة ما لا يقل عن 85% (اختبار الوحدات والمقننة - اختبار الفترة – الاختبار النهائي)."},
         
-        st.markdown("---")
-        
+        # المجال الثالث: الشخصية المتوازنة
+        {"id": "q16", "domain": "الشخصية المتوازنة", "num": 16, "text": "يتمثل المتعلمون القيم الإسلامية والمواطنة والسلوك الصفي الحسن."},
+        {"id": "q17", "domain": "الشخصية المتوازنة", "num": 17, "text": "يتحمل المتعلمون مسؤولية تعلمهم ويمارسون التوجه الذاتي (القيادة، التنسيق. الخ) – الصف المقلوب."},
+        {"id": "q18", "domain": "الشخصية المتوازنة", "num": 18, "text": "يشارك المتعلمون في أنشطة جماعية ويعملون بروح الفريق ويسود الاحترام المتبادل والتعاطف بينهم."},
+        {"id": "q19", "domain": "الشخصية المتوازنة", "num": 19, "text": "يبادر المتعلمون للتعبير عن أفكارهم وآرائهم بثقة ووضوح في بيئة التعلم."},
+        {"id": "q20", "domain": "الشخصية المتوازنة", "num": 20, "text": "القدرة على إدارة وضبط النظام داخل الصف وفق القواعد التنظيمية."}
+    ]
+    
+    scores = {}
+    
+    st.markdown("""
+    <table class="eval-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">المجال</th>
+                <th style="width: 5%;">م</th>
+                <th style="width: 50%;">عناصر التقييم</th>
+                <th style="width: 30%;">الدرجة المحددة (من 1 إلى 5 درجات)</th>
+            </tr>
+        </thead>
+    </table>
+    """, unsafe_allow_html=True)
+    
+    for item in rubric_items:
+        col_t1, col_t2, col_t3, col_t4 = st.columns([1.5, 0.5, 5.0, 3.0])
+        with col_t1:
+            st.markdown(f"<div style='text-align:right; font-weight:700; color:#1e3a8a; padding-top:8px;'>{item['domain']}</div>", unsafe_allow_html=True)
+        with col_t2:
+            st.markdown(f"<div style='text-align:right; font-weight:700; padding-top:8px;'>{item['num']}</div>", unsafe_allow_html=True)
+        with col_t3:
+            st.markdown(f"<div style='text-align:right; padding-top:8px; color:#1e293b; line-height:1.5;'>{item['text']}</div>", unsafe_allow_html=True)
+        with col_t4:
+            # افتراضياً على الخيار رقم 5 (متميز - index 4) لتظهر الدرجة كاملة 100/100
+            scores[item['id']] = st.radio(
+                f"الدرجة {item['num']}",
+                options=[1, 2, 3, 4, 5],
+                index=4, # الخيار رقم 5 بشكل افتراضي كامل
+                horizontal=True,
+                key=f"radio_item_{item['id']}_cnt_{cnt}",
+                label_visibility="collapsed"
+            )
+        st.markdown("<hr style='margin: 3px 0; border: 0.5px solid #f1f5f9;'>", unsafe_allow_html=True)
+
+    # احتساب المجموع النهائي من 100 درجة (20 بند × 5 درجات = 100)
+    total_val = sum(scores.values())
+    max_val = 100
+    percentage = (total_val / max_val) * 100
+    
+    st.markdown(f"""
+    <div style="background-color:#f0fdf4; border:2px solid #bbf7d0; border-radius:14px; padding:18px; text-align:center !important; margin-top:20px; box-shadow:0 4px 12px rgba(22, 163, 74, 0.1);">
+        <span style="font-size:22px; font-weight:900; color:#166534;">🌟 المجموع الكلي لدرجات المعلم: {total_val} من {max_val} درجات ({percentage:.1f}%)</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    notes_input = st.text_area("توصيات وملحوظات المشرف الزائر:", key=f"notes_input_text_{cnt}")
+
+    st.markdown("---")
+    st.subheader("✍️ الاعتمادات والتوقيعات الرسمية")
+    
+    col_sig1, col_sig2, col_sig3 = st.columns(3)
+    
+    with col_sig1:
         st.markdown(f"""
-        <div class="print-report">
-            <div style="text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 20px;">
-                <h3 style="margin:0; color:#1e3c72; font-size: 19px;">المملكة العربية السعودية - وزارة التعليم</h3>
-                <h4 style="margin:5px 0; color:#333; font-size: 15px;">الإدارة العامة للتعليم بمنطقة الرياض</h4>
-                <h4 style="margin:5px 0; color:#333; font-size: 15px;">متوسطة الثغر النموذجية الأهلية - بنين</h4>
-                <hr style="border: 1px solid #1e3c72; margin: 15px 0;">
-                <h2 style="color:#1e3c72; font-size: 18px; font-weight: 800; margin:10px 0;">
-                    تقرير تدوين ومعالجة المخالفات السلوكية والانضباط المدرسي والمافظة على حقوق المتعلم
-                </h2>
-            </div>
-            
-            <div class="table-container">
-                <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;" border="1" cellpadding="8">
-                    <tr style="background-color: #f2f5f9;">
-                        <th style="width: 20%;">رقم التقرير:</th>
-                        <td style="width: 30%;">{rep_data['id']}</td>
-                        <th style="width: 20%;">تاريخ الرصد:</th>
-                        <td style="width: 30%;">{rep_data['created_at']}</td>
-                    </tr>
-                    <tr>
-                        <th>اسم الطالب:</th>
-                        <td><b>{rep_data['student_name']}</b></td>
-                        <th>رقم الطالب / الهوية:</th>
-                        <td>{rep_data['student_id']}</td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>الصف الدراسي:</th>
-                        <td>{rep_data['grade']}</td>
-                        <th>الفصل (الشعبة):</th>
-                        <td>{rep_data['section']}</td>
-                    </tr>
-                    <tr>
-                        <th>المعلم الراصد:</th>
-                        <td>{rep_data['teacher_name']}</td>
-                        <th>الحصة الدراسية:</th>
-                        <td>{rep_data['period']}</td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>درجة المشكلة:</th>
-                        <td colspan="3"><b style="color: #c0392b;">{rep_data['incident_degree']}</b></td>
-                    </tr>
-                    <tr>
-                        <th>المشكلة السلوكية:</th>
-                        <td colspan="3">{rep_data['incident_type']}</td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>وصف المعلم للمشكلة:</th>
-                        <td colspan="3">{rep_data['description']}</td>
-                    </tr>
-                    <tr>
-                        <th>الإجراء المتخذ (الوكيل):</th>
-                        <td colspan="3"><b style="color: #27ae60;">{rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة'}</b></td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>ملاحظات الوكيل:</th>
-                        <td colspan="3">{rep_data['vice_notes'] if rep_data['vice_notes'] else 'لا توجد ملاحظات إضافية'}</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div style="margin-top: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background-color: #fafafa;">
-                <h4 style="margin-top:0; color:#1e3c72; text-align: center;">الاعتمادات والتوقيعات الرسمية</h4>
-                <div class="signatures-grid">
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">المعلم الراصد</p>
-                        <p style="margin: 0; color: #555;">{rep_data['teacher_name']}</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">الطالب المخالف</p>
-                        <p style="margin: 0; color: #555;">{rep_data['student_name']}</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">وكيل شؤون الطلاب</p>
-                        <p style="margin: 0; color: #555;">صالح بن عبدالله الدعجاني</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">مدير المدرسة</p>
-                        <p style="margin: 0; color: #555;">إبراهيم بن موسى التميمي</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 25px; padding-top: 12px; border-top: 1px dashed #bbb; font-size: 13px; color: #555;">
-                <b>إعداد وتصميم البرمجية:</b> المعلم / محمد سامي السعيد
-            </div>
+        <div style="text-align:right; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #cbd5e1;">
+            <h5 style="color:#1e3a8a; font-weight:800; margin-bottom:8px; text-align:right;">المعلم المطلع</h5>
+            <p style="font-weight:700; color:#0f172a; margin-bottom:15px; text-align:right;">{selected_teacher}</p>
+            <p style="color:#64748b; margin:0; text-align:right;">التوقيع: __________________</p>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.info("💡 لطباعة التقرير أعلاه بصيغة ورقية أو حفظه كملف PDF، يرجى الضغط على زر (Ctrl + P) في لوحة المفاتيح واختيار الحفظ كـ PDF.")
+    with col_sig2:
+        st.markdown("""
+        <div style="text-align:right; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #cbd5e1;">
+            <h5 style="color:#1e3a8a; font-weight:800; margin-bottom:8px; text-align:right;">وكيل المدرسة للشؤون التعليمية</h5>
+            <p style="font-weight:700; color:#0f172a; margin-bottom:15px; text-align:right;">محمد مبروك محمد السيد</p>
+            <p style="color:#64748b; margin:0; text-align:right;">التوقيع: __________________</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_sig3:
+        st.markdown("""
+        <div style="text-align:right; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #cbd5e1;">
+            <h5 style="color:#1e3a8a; font-weight:800; margin-bottom:8px; text-align:right;">مدير المدرسة</h5>
+            <p style="font-weight:700; color:#0f172a; margin-bottom:15px; text-align:right;">إبراهيم بن موسى التميمي</p>
+            <p style="color:#64748b; margin:0; text-align:right;">التوقيع: __________________</p>
+        </div>
+        """, unsafe_allow_html=True)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col_save_btn1, col_save_btn2 = st.columns(2)
+    with col_save_btn1:
+        submit_save = st.button("💾 حفظ استمارة التقييم الحالية (من 100)", type="primary", use_container_width=True, key=f"save_eval_btn_{cnt}")
+    with col_save_btn2:
+        if st.button("🖨️ طباعة الاستمارة مباشرة (A4)", type="secondary", use_container_width=True, key=f"print_eval_btn_{cnt}"):
+            st.components.v1.html("""<script>setTimeout(function() { window.parent.print(); }, 300);</script>""", height=0)
+
+    if submit_save:
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        all_subs_str = ", ".join(teacher_info['subjects'])
+        c.execute('''
+            INSERT INTO evaluations (
+                teacher_name, specialization, assigned_subjects, selected_subject, grade, class_name,
+                semester, session_num, visit_num, eval_date,
+                q1_score, q2_score, q3_score, q4_score, q5_score, q6_score, q7_score, q8_score, q9_score, q10_score,
+                q11_score, q12_score, q13_score, q14_score, q15_score, q16_score, q17_score, q18_score, q19_score, q20_score,
+                total_score, notes, signed_teacher, signed_vp, signed_principal
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            selected_teacher, teacher_spec, all_subs_str, selected_subject, selected_grade, selected_class,
+            selected_semester, selected_session, selected_visit, str(today_date),
+            scores['q1'], scores['q2'], scores['q3'], scores['q4'], scores['q5'], scores['q6'], scores['q7'], scores['q8'], scores['q9'], scores['q10'],
+            scores['q11'], scores['q12'], scores['q13'], scores['q14'], scores['q15'], scores['q16'], scores['q17'], scores['q18'], scores['q19'], scores['q20'],
+            total_val, notes_input, selected_teacher, "محمد مبروك محمد السيد", "إبراهيم بن موسى التميمي"
+        ))
+        conn.commit()
+        conn.close()
+        st.success(f"✅ تم حفظ استمارة تقييم المعلم ({selected_teacher}) للتخصص ({teacher_spec}) بنجاح! المجموع: {total_val} من 100.")
+        # تعيين استمارة جديدة فارغة ومحددة على 100 درجات تلقائياً بعد الحفظ
+        st.session_state['form_reset_count'] += 1
+        st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ==========================================
+# التبويب الثاني: استرجاع وتعديل / حذف استمارة
+# ==========================================
+with tab2:
+    st.markdown('<div class="centered-card">', unsafe_allow_html=True)
+    st.subheader("🔍 البحث عن استمارة تقييم وإدارتها (تعديل / حذف / طباعة)")
+    
+    teachers_data = get_all_teachers()
+    t_list = list(teachers_data.keys())
+    
+    if t_list:
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            search_teacher = st.selectbox("اختر اسم المعلم:", t_list, key="search_t_tab2_v7")
+        with col_f2:
+            search_visit = st.selectbox("اختر رقم الزيارة:", VISITS_LIST, key="search_v_tab2_v7")
+        with col_f3:
+            st.markdown("<br>", unsafe_allow_html=True)
+            btn_start = st.button("🚀 ابدأ البحث", type="primary", use_container_width=True, key="btn_search_tab2_v7")
+
+        if btn_start or st.session_state.get('last_searched_id_v7'):
+            conn = sqlite3.connect(DB_FILE)
+            df_search = pd.read_sql_query(
+                "SELECT * FROM evaluations WHERE teacher_name = ? AND visit_num = ? ORDER BY id DESC LIMIT 1", 
+                conn, params=(search_teacher, search_visit)
+            )
+            conn.close()
+            
+            if not df_search.empty:
+                rec = df_search.iloc[0]
+                rec_id = int(rec['id'])
+                st.session_state['last_searched_id_v7'] = rec_id
+                
+                # عرض بطاقة الاستمارة المسترجعة بشكل برمجى نظيف ودون أي تسريب لأكواد HTML
+                st.markdown("""
+                <div style="border: 2px solid #1e3a8a; border-radius:14px; padding:22px; background-color:#ffffff; direction:rtl; text-align:right;">
+                    <h2 style="text-align:center; color:#1e3a8a; font-weight:900; margin-bottom:5px;">مدارس الثغر النموذجية الأهلية - القسم المتوسط</h2>
+                    <h4 style="text-align:center; color:#0d9488; font-weight:700; margin-top:0;">بطاقة تقييم الأداء الصفي والزيارة الإشرافية (20 بنداً - 100 درجة)</h4>
+                    <hr style="border-top: 2px solid #0d9488; margin: 15px 0;">
+                </div>
+                """, unsafe_allow_html=True)
+
+                # عرض تفاصيل البيانات الأساسية باستخدام أعمدة Streamlit النظيفة بدلاً من جداول HTML المعقدة
+                col_info1, col_info2, col_info3 = st.columns(3)
+                with col_info1:
+                    st.write(f"👤 **اسم المعلم:** {rec['teacher_name']}")
+                    st.write(f"🏫 **الصف:** {rec['grade']}")
+                    st.write(f"⏱️ **الحصة:** {rec['session_num']}")
+                with col_info2:
+                    st.write(f"📌 **التخصص:** {rec['specialization']}")
+                    st.write(f"🚪 **الفصل:** {rec['class_name']}")
+                    st.write(f"🔢 **رقم الزيارة:** {rec['visit_num']}")
+                with col_info3:
+                    st.write(f"📘 **المادة المزارة:** {rec['selected_subject']}")
+                    st.write(f"📅 **الفصل الدراسي:** {rec.get('semester', 'الأول')}")
+                    st.write(f"📆 **التاريخ:** {rec['eval_date']}")
+
+                st.markdown("---")
+                st.markdown(f"""
+                <div style="background-color:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:10px; padding:12px; text-align:right;">
+                    <h4 style="color:#166534; margin:0;">📊 ملخص التقييم النهائي:</h4>
+                    <p style="font-size:20px; font-weight:800; color:#15803d; margin:5px 0 0 0;">المجموع الكلي: {rec['total_score']} من 100 درجات ({(int(rec['total_score'])):.1f}%)</p>
+                    <p style="color:#334155; margin-top:8px;"><b>التوصيات والملحوظات:</b> {rec['notes'] if rec['notes'] else 'لا يوجد'}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # الاعتمادات الرسمية للتوقيع
+                col_s1, col_s2, col_s3 = st.columns(3)
+                with col_s1:
+                    st.markdown(f"**المعلم المطلع:**\n\n{rec['signed_teacher']}\n\n__________________")
+                with col_s2:
+                    st.markdown(f"**وكيل الشؤون التعليمية:**\n\n{rec.get('signed_vp', 'محمد مبروك محمد السيد')}\n\n__________________")
+                with col_s3:
+                    st.markdown(f"**مدير المدرسة:**\n\n{rec.get('signed_principal', 'إبراهيم بن موسى التميمي')}\n\n__________________")
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                col_act1, col_act2, col_act3 = st.columns(3)
+                
+                with col_act1:
+                    if st.button("🖨️ طباعة الاستمارة (A4)", type="secondary", use_container_width=True, key="print_rec_btn_v7"):
+                        st.components.v1.html("""<script>setTimeout(function() { window.parent.print(); }, 300);</script>""", height=0)
+                
+                with col_act2:
+                    show_edit = st.button("✏️ تعديل هذه الاستمارة", type="primary", use_container_width=True, key="btn_show_edit_v7")
+                
+                with col_act3:
+                    show_delete = st.button("🗑️ حذف هذه الاستمارة", type="primary", use_container_width=True, key="btn_show_del_v7")
+
+                # إجراء الحذف
+                if show_delete:
+                    conn = sqlite3.connect(DB_FILE)
+                    c = conn.cursor()
+                    c.execute("DELETE FROM evaluations WHERE id = ?", (rec_id,))
+                    conn.commit()
+                    conn.close()
+                    st.success("✅ تم حذف استمارة التقييم بنجاح من قاعدة البيانات!")
+                    st.session_state.pop('last_searched_id_v7', None)
+                    st.rerun()
+
+                # إجراء التعديل
+                if show_edit or st.session_state.get(f'editing_v7_{rec_id}'):
+                    st.session_state[f'editing_v7_{rec_id}'] = True
+                    st.markdown("---")
+                    st.subheader("✏️ نموذج تعديل الاستمارة")
+                    
+                    with st.form(f"edit_form_v7_{rec_id}"):
+                        new_notes = st.text_area("التوصيات والملحوظات الجديدة:", value=rec['notes'])
+                        new_total = st.number_input("المجموع الكلي المعدل (من 100):", min_value=0, max_value=100, value=int(rec['total_score']))
+                        save_changes = st.form_submit_button("💾 حفظ التعديلات", type="primary")
+                        
+                        if save_changes:
+                            conn = sqlite3.connect(DB_FILE)
+                            c = conn.cursor()
+                            c.execute("UPDATE evaluations SET notes = ?, total_score = ? WHERE id = ?", (new_notes, new_total, rec_id))
+                            conn.commit()
+                            conn.close()
+                            st.success("✅ تم تحديث بيانات الاستمارة بنجاح!")
+                            st.session_state.pop(f'editing_v7_{rec_id}', None)
+                            st.rerun()
+            else:
+                st.warning("⚠️ لم يتم العثور على استمارة تقييم مسجلة لهذا المعلم في الزيارة المحددة.")
+    else:
+        st.info("ℹ️ لا توجد بيانات معلمين مسجلة.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ==========================================
+# التبويب الثالث: إضافة معلم جديد
+# ==========================================
+with tab3:
+    st.markdown('<div class="centered-card">', unsafe_allow_html=True)
+    st.subheader("➕ إضافة معلم جديد إلى قائمة النظام")
+    
+    with st.form("add_teacher_form_v7", clear_on_submit=True):
+        col_t1, col_t2, col_t3 = st.columns(3)
+        with col_t1:
+            new_t_name = st.text_input("اسم المعلم الثلاثي/الرباعي:")
+        with col_t2:
+            new_t_spec = st.text_input("التخصص:")
+        with col_t3:
+            new_t_subj = st.text_input("المواد المسندة (افصل بين المواد بـ +):")
+            
+        btn_add_t = st.form_submit_button("➕ حفظ المعلم الجديد", type="primary", use_container_width=True)
+        
+        if btn_add_t:
+            if new_t_name.strip() and new_t_spec.strip():
+                try:
+                    conn = sqlite3.connect(DB_FILE)
+                    c = conn.cursor()
+                    c.execute("INSERT INTO custom_teachers (teacher_name, specialization, assigned_subjects) VALUES (?, ?, ?)",
+                              (new_t_name.strip(), new_t_spec.strip(), new_t_subj.strip()))
+                    conn.commit()
+                    conn.close()
+                    st.success(f"✅ تم إدراج المعلم ({new_t_name}) وتخصصه ({new_t_spec}) بنجاح إلى قائمة المعلمين!")
+                    st.rerun()
+                except sqlite3.IntegrityError:
+                    st.error("⚠️ هذا المعلم مسجل بالفعل في القائمة.")
+            else:
+                st.warning("⚠️ يرجى إدخال اسم المعلم وتخصصه على الأقل.")
+                
+    st.markdown("---")
+    st.subheader("📋 قائمة المعلمين المسجلين حالياً والربط بالتخصص والمواد")
+    teachers_dict = get_all_teachers()
+    if teachers_dict:
+        t_df = pd.DataFrame([
+            {"اسم المعلم": k, "التخصص": v['spec'], "المواد المسندة": ", ".join(v['subjects'])} 
+            for k, v in teachers_dict.items()
+        ])
+        st.dataframe(t_df, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ==========================================
+# التبويب الرابع: التقارير العامة (Excel / PDF)
+# ==========================================
+with tab4:
+    st.markdown('<div class="centered-card">', unsafe_allow_html=True)
+    st.subheader("📑 التقرير العام لجميع المعلمين والتصدير")
+    
+    conn = sqlite3.connect(DB_FILE)
+    df_all = pd.read_sql_query("SELECT * FROM evaluations ORDER BY id DESC", conn)
+    conn.close()
+
+    if not df_all.empty:
+        st.dataframe(df_all, use_container_width=True)
+        
+        col_exp1, col_exp2 = st.columns(2)
+        
+        with col_exp1:
+            output_excel = BytesIO()
+            with pd.ExcelWriter(output_excel, engine='openpyxl') as writer:
+                df_all.to_excel(writer, index=False, sheet_name='تقييمات المعلمين')
+            excel_bytes = output_excel.getvalue()
+            
+            st.download_button(
+                label="📊 تحميل تقرير كافة المعلمين (Excel)",
+                data=excel_bytes,
+                file_name=f"تقرير_تقييم_معلمي_الثغر_{datetime.date.today()}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+            
+        with col_exp2:
+            if st.button("🖨️ طباعة وتصدير التقرير الكلي (PDF)", use_container_width=True, key="print_all_btn_v7"):
+                st.components.v1.html("""<script>setTimeout(function() { window.parent.print(); }, 300);</script>""", height=0)
+    else:
+        st.info("ℹ️ لا توجد بيانات مسجلة في قاعدة البيانات حتى الآن.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
+
+       
