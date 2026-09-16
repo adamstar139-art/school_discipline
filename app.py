@@ -2,6 +2,7 @@ import os
 import sqlite3
 import tempfile
 import textwrap
+import urllib.parse
 from datetime import datetime
 import pandas as pd
 import streamlit as st
@@ -364,6 +365,71 @@ def init_db():
     conn.commit()
     conn.close()
 
+
+
+# ==========================================
+# Helper Function for WhatsApp Direct Messaging
+# ==========================================
+OFFICIAL_CONTACTS = {
+    'وكيل شؤون الطلاب (صالح بن عبدالله الدعجاني)': '966560229124',
+    'مدير المدرسة (إبراهيم بن موسى التميمي)': '966555214076',
+    'وكيل الشؤون التعليمية': '966508634881'
+}
+
+def generate_whatsapp_url(phone_number, rep_data):
+    """Generates a WhatsApp direct web URL with a pre-filled Arabic message for a discipline report."""
+    clean_phone = ''.join(filter(str.isdigit, str(phone_number)))
+    if clean_phone.startswith('0'):
+        clean_phone = '966' + clean_phone[1:]
+    elif not clean_phone.startswith('966'):
+        clean_phone = '966' + clean_phone
+
+    if isinstance(rep_data, pd.Series) or isinstance(rep_data, dict):
+        action_val = rep_data.get('action_taken', '')
+        notes_val = rep_data.get('vice_notes', '')
+        rep_id = rep_data.get('id', '')
+        st_name = rep_data.get('student_name', '')
+        st_id = rep_data.get('student_id', '')
+        grade = rep_data.get('grade', '')
+        sec = rep_data.get('section', '')
+        teacher = rep_data.get('teacher_name', '')
+        period = rep_data.get('period', '')
+        degree = rep_data.get('incident_degree', '')
+        itype = rep_data.get('incident_type', '')
+        desc = rep_data.get('description', '')
+    else:
+        action_val = getattr(rep_data, 'action_taken', '')
+        notes_val = getattr(rep_data, 'vice_notes', '')
+        rep_id = getattr(rep_data, 'id', '')
+        st_name = getattr(rep_data, 'student_name', '')
+        st_id = getattr(rep_data, 'student_id', '')
+        grade = getattr(rep_data, 'grade', '')
+        sec = getattr(rep_data, 'section', '')
+        teacher = getattr(rep_data, 'teacher_name', '')
+        period = getattr(rep_data, 'period', '')
+        degree = getattr(rep_data, 'incident_degree', '')
+        itype = getattr(rep_data, 'incident_type', '')
+        desc = getattr(rep_data, 'description', '')
+
+    action_text = action_val if action_val else 'قيد المعالجة'
+    notes_text = notes_val if notes_val else 'لا توجد ملاحظات إضافية'
+
+    message = f"""السلام عليكم ورحمة الله وبركاته،
+إشعار بخصوص تقرير المخالفة السلوكية رقم #{rep_id}:
+• الطالب: {st_name} ({st_id})
+• الصف والفصل: {grade} - {sec}
+• المعلم الراصد: {teacher} ({period})
+• درجة المشكلة: {degree}
+• نوع المشكلة: {itype}
+• وصف الواقعة: {desc}
+• الإجراء المتخذ: {action_text}
+• ملاحظات الوكيل: {notes_text}
+
+🏫 متوسطة الثغر النموذجية الأهلية - بنين"""
+
+    encoded_msg = urllib.parse.quote(message)
+    return f"https://wa.me/{clean_phone}?text={encoded_msg}"
+
 init_db()
 
 def fetch_teachers():
@@ -633,6 +699,15 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                             
                             st.markdown("---")
                             # 🗑️ Delete Button Icon for Pending Incidents
+                            st.markdown("##### 📱 إرسال إشعار مباشر عبر الواتساب:")
+                            w1, w2, w3 = st.columns(3)
+                            with w1:
+                                st.link_button("📱 وكيل شؤون الطلاب", generate_whatsapp_url('966560229124', row), use_container_width=True)
+                            with w2:
+                                st.link_button("📱 مدير المدرسة", generate_whatsapp_url('966555214076', row), use_container_width=True)
+                            with w3:
+                                st.link_button("📱 وكيل الشؤون التعليمية", generate_whatsapp_url('966508634881', row), use_container_width=True)
+                            st.markdown("---")
                             if st.button(f"🗑️ حذف هذا البلاغ (رقم #{row['id']}) نهائياً", key=f"del_pending_{row['id']}"):
                                 conn = get_connection()
                                 c = conn.cursor()
@@ -655,6 +730,15 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                             
                             st.markdown("---")
                             # 🗑️ Delete Button Icon for Processed Incidents
+                            st.markdown("##### 📱 إرسال إشعار مباشر عبر الواتساب:")
+                            pw1, pw2, pw3 = st.columns(3)
+                            with pw1:
+                                st.link_button("📱 وكيل شؤون الطلاب", generate_whatsapp_url('966560229124', row), use_container_width=True)
+                            with pw2:
+                                st.link_button("📱 مدير المدرسة", generate_whatsapp_url('966555214076', row), use_container_width=True)
+                            with pw3:
+                                st.link_button("📱 وكيل الشؤون التعليمية", generate_whatsapp_url('966508634881', row), use_container_width=True)
+                            st.markdown("---")
                             if st.button(f"🗑️ حذف هذا البلاغ (رقم #{row['id']}) نهائياً", key=f"del_proc_{row['id']}"):
                                 conn = get_connection()
                                 c = conn.cursor()
@@ -821,6 +905,25 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         rep_data = pd.read_sql_query("SELECT * FROM incidents WHERE id = ?", conn, params=[selected_id]).iloc[0]
         conn.close()
         
+        st.markdown("---")
+        
+        st.markdown("### 📱 إرسال التقرير عبر الواتساب")
+        st.info("💡 يمكنك إرسال تفاصيل التقرير مباشرة عبر الواتساب للأطراف المعنية بنقرة واحدة:")
+        
+        col_w1, col_w2, col_w3 = st.columns(3)
+        with col_w1:
+            st.link_button("📲 مدير المدرسة\n(0555214076)", generate_whatsapp_url('966555214076', rep_data), use_container_width=True)
+        with col_w2:
+            st.link_button("📲 وكيل الشؤون التعليمية\n(0508634881)", generate_whatsapp_url('966508634881', rep_data), use_container_width=True)
+        with col_w3:
+            st.link_button("📲 وكيل شؤون الطلاب\n(0560229124)", generate_whatsapp_url('966560229124', rep_data), use_container_width=True)
+            
+        with st.expander("📱 إرسال التقرير إلى رقم جوال آخر (مثل ولي الأمر)"):
+            custom_phone = st.text_input("أدخل رقم الجوال (مثال: 05XXXXXXXX أو 9665XXXXXXXX):", key=f"cust_phone_{selected_id}")
+            if custom_phone.strip():
+                c_url = generate_whatsapp_url(custom_phone.strip(), rep_data)
+                st.link_button(f"📲 فتح الواتساب للإرسال إلى ({custom_phone.strip()})", c_url, use_container_width=True)
+                
         st.markdown("---")
         
         # Interactive Direct Print Button using window.parent.print()
