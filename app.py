@@ -527,7 +527,7 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
     st.markdown("---")
     description = st.text_area("8️⃣ وصف المشكلة التفصيلي (تدوين واقعة المخالفة):", placeholder="يكتب المعلم هنا وصفاً دقيقاً ومفصلاً لما حدث أثناء الحصة...", key="desc_input")
     
-    if st.button("📤 إرسال البلاغ لوكيل الشؤون المدرسية", key="submit_incident_btn"):
+    if st.button("📤 إرسال البلاغ لوكيل شؤون الطلاب", key="submit_incident_btn"):
         if not selected_student_str:
             st.error("❌ يرجى اختيار الطالب من القائمة المنسدلة قبل إرسال البلاغ.")
         elif not description.strip():
