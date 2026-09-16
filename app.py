@@ -1,3 +1,4 @@
+DEFAULT_STUDENT_PHONES_MAP = {}
 import os
 import sqlite3
 import tempfile
@@ -129,12 +130,36 @@ st.markdown("""
     .badge-deg-5 { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
 
     @media print {
-        .stSidebar, header, footer, .stButton, .no-print {
+        @page {
+            size: A4 portrait;
+            margin: 6mm 10mm 6mm 10mm;
+        }
+        html, body, .stApp, .main, .block-container {
+            background: #ffffff !important;
+            color: #000000 !important;
+            direction: rtl !important;
+            text-align: right !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .no-print, .header-banner, .stSidebar, [data-testid="stHeader"], [data-testid="stSidebar"], .stSelectbox, .stButton, header, footer, .stRadio, hr, div:has(> .no-print), div[data-testid="stForm"] {
             display: none !important;
         }
-        .main .block-container {
-            padding: 0 !important;
-            margin: 0 !important;
+        .a4-print-report {
+            border: 2px solid #1e3c72 !important;
+            border-radius: 10px !important;
+            padding: 16px 20px !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            page-break-inside: avoid !important;
+            font-family: 'Tajawal', sans-serif !important;
+            background-color: #ffffff !important;
+            color: #111111 !important;
+            box-shadow: none !important;
         }
     }
 </style>
@@ -142,7 +167,7 @@ st.markdown("""
 
 ### Main Top Header Banner
 st.markdown("""
-<div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 22px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+<div class="no-print header-banner" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 22px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <h1 style="color: white; margin: 0; font-size: 28px; text-align: center !important;">🏫 نظام تدوين المخالفات السلوكية والانضباط المدرسي</h1>
     <h3 style="color: #e0e0e0; margin-top: 8px; font-size: 18px; font-weight: normal; text-align: center !important;">متوسطة الثغر النموذجية الأهلية</h3>
 </div>
@@ -394,6 +419,22 @@ def init_db():
         ('1168385894', 'يوسف نايف مقعد العتيبي', 'الصف الثالث المتوسط', 'فصل 1', '966505290037')
     ]
     c.executemany("INSERT OR IGNORE INTO students (id, name, grade, section, phone) VALUES (?, ?, ?, ?, ?)", default_students)
+    
+    # Force update phone for existing records where phone IS NULL or empty
+    for st_item in default_students:
+        sid, sname, sgrade, ssec, sphone = st_item
+        if sphone:
+            c.execute("""
+                UPDATE students 
+                SET phone = ? 
+                WHERE (id = ? OR name = ?) AND (phone IS NULL OR phone = '' OR phone = 'None')
+            """, (sphone, sid, sname))
+            
+            # Populate global fallback map
+            if 'DEFAULT_STUDENT_PHONES_MAP' in globals():
+                DEFAULT_STUDENT_PHONES_MAP[str(sid).strip()] = str(sphone).strip()
+                DEFAULT_STUDENT_PHONES_MAP[str(sname).strip()] = str(sphone).strip()
+
     conn.commit()
     conn.close()
 
@@ -407,38 +448,51 @@ def fetch_teachers():
     return df['name'].tolist()
 
 def get_student_phone(student_id_or_name=None, student_name=None):
-    """استدعاء رقم جوال ولي الأمر المعتمد تلقائياً من قاعدة البيانات باستعمال هوية الطالب أو اسمه"""
-    if not student_id_or_name and not student_name:
-        return ""
-    
-    conn = get_connection()
-    c = conn.cursor()
-    phone = ""
-    
+    """استدعاء رقم جوال ولي الأمر المعتمد تلقائياً من قاعدة البيانات باستعمال هوية الطالب أو اسمه مع نظام استعادة البيانات المضمونة"""
     sid = str(student_id_or_name).strip() if student_id_or_name else ""
     sname = str(student_name).strip() if student_name else ""
     
-    # 1. Search by exact student_id
+    if not sid and not sname:
+        return ""
+        
+    phone = ""
+    conn = get_connection()
+    c = conn.cursor()
+    
+    # 1. Exact ID match
     if sid:
         c.execute("SELECT phone FROM students WHERE id = ? OR TRIM(id) = ?", (sid, sid))
         row = c.fetchone()
-        if row and row[0] and str(row[0]).strip():
+        if row and row[0] and str(row[0]).strip() and str(row[0]).strip() != "None":
             phone = str(row[0]).strip()
             
-    # 2. Search by student_name if phone still empty
+    # 2. Exact Name match
     if not phone and (sname or sid):
-        target_name = sname if sname else sid
-        c.execute("SELECT phone FROM students WHERE name = ? OR TRIM(name) = ?", (target_name, target_name))
+        target = sname if sname else sid
+        c.execute("SELECT phone FROM students WHERE name = ? OR TRIM(name) = ?", (target, target))
         row = c.fetchone()
-        if row and row[0] and str(row[0]).strip():
+        if row and row[0] and str(row[0]).strip() and str(row[0]).strip() != "None":
             phone = str(row[0]).strip()
-        else:
-            # 3. Search by substring/LIKE name
-            c.execute("SELECT phone FROM students WHERE name LIKE ?", (f"%{target_name}%",))
-            row = c.fetchone()
-            if row and row[0] and str(row[0]).strip():
-                phone = str(row[0]).strip()
-                
+            
+    # 3. Substring Name match
+    if not phone and (sname or sid):
+        target = sname if sname else sid
+        c.execute("SELECT phone FROM students WHERE name LIKE ?", (f"%{target}%",))
+        row = c.fetchone()
+        if row and row[0] and str(row[0]).strip() and str(row[0]).strip() != "None":
+            phone = str(row[0]).strip()
+            
+    # 4. Dictionary Fallback (100% Guarantee)
+    if not phone:
+        if sid in DEFAULT_STUDENT_PHONES_MAP:
+            phone = DEFAULT_STUDENT_PHONES_MAP[sid]
+        elif sname in DEFAULT_STUDENT_PHONES_MAP:
+            phone = DEFAULT_STUDENT_PHONES_MAP[sname]
+            
+        if phone:
+            c.execute("UPDATE students SET phone = ? WHERE id = ? OR name = ?", (phone, sid, sname))
+            conn.commit()
+            
     conn.close()
     return phone
 
@@ -1341,60 +1395,112 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                         st.success("✅ تم تحديث رقم ولي الأمر في قاعدة البيانات بنجاح!")
                         st.rerun()
         
-        # Formatted Official Report Template
-        action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة'
+        # Formatted Official Report Template for A4 Print (Without Main Header Banner, Single A4 Page)
+        action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة والإجراء النظامي'
         notes_str = rep_data['vice_notes'] if rep_data['vice_notes'] else 'لا توجد ملاحظات إضافية'
 
         report_html = f"""
-        <div style="direction: rtl; text-align: right; border: 2px solid #1e3c72; padding: 25px; border-radius: 12px; font-family: 'Tajawal', sans-serif; background-color: #ffffff; color: #222;">
-            <div style="text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 20px;">
-                <h2 style="color: #1e3c72; margin: 0;">متوسطة الثغر النموذجية الأهلية</h2>
-                <h3 style="color: #555; margin: 5px 0 0 0;">تقرير مخالفة سلوكية إداري رقم #{rep_data['id']}</h3>
+        <div class="a4-print-report" style="direction: rtl; text-align: right; border: 2px solid #1e3c72; padding: 20px 25px; border-radius: 12px; font-family: 'Tajawal', sans-serif; background-color: #ffffff; color: #111; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); page-break-inside: avoid;">
+            
+            <!-- Official Ministry & School Header Grid -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3c72; padding-bottom: 12px; margin-bottom: 18px;">
+                <div style="text-align: right; font-size: 13px; line-height: 1.6; color: #222;">
+                    <strong>المملكة العربية السعودية</strong><br>
+                    <strong>وزارة التعليم</strong><br>
+                    <strong>إدارة التعليم بمحافظة جدة</strong><br>
+                    <strong>متوسطة الثغر النموذجية الأهلية</strong>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 32px; line-height: 1;">🏫</div>
+                    <div style="font-size: 12px; font-weight: bold; color: #1e3c72; margin-top: 4px;">الانضباط المدرسي</div>
+                </div>
+                <div style="text-align: left; font-size: 13px; line-height: 1.6; color: #222;">
+                    <strong>رقم التقرير:</strong> #{rep_data['id']}<br>
+                    <strong>تاريخ الرصد:</strong> {rep_data['created_at']}<br>
+                    <strong>حالة التقرير:</strong> {rep_data['status']}
+                </div>
             </div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <tr>
-                    <td style="padding: 8px; font-weight: bold; width: 20%;">اسم الطالب:</td>
-                    <td style="padding: 8px;">{rep_data['student_name']}</td>
-                    <td style="padding: 8px; font-weight: bold; width: 20%;">رقم الهوية/الطالب:</td>
-                    <td style="padding: 8px;">{rep_data['student_id']}</td>
+
+            <!-- Report Main Title Banner -->
+            <div style="background: #1e3c72; color: white; text-align: center; padding: 8px 15px; border-radius: 6px; font-size: 18px; font-weight: bold; margin-bottom: 18px;">
+                إشعار مخالفة سلوكية إداري رقم #{rep_data['id']}
+            </div>
+
+            <!-- Student & Incident Metadata Table -->
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px;">
+                <tr style="background-color: #f8fafc;">
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-weight: bold; width: 18%; color: #1e3c72;">اسم الطالب:</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 15px;">{rep_data['student_name']}</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-weight: bold; width: 18%; color: #1e3c72;">رقم الهوية:</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-family: monospace; font-size: 14px;">{rep_data['student_id']}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; font-weight: bold;">الصف والفصل:</td>
-                    <td style="padding: 8px;">{rep_data['grade']} - {rep_data['section']}</td>
-                    <td style="padding: 8px; font-weight: bold;">الحصة:</td>
-                    <td style="padding: 8px;">{rep_data['period']}</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-weight: bold; color: #1e3c72;">الصف والفصل:</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1;">{rep_data['grade']} - {rep_data['section']}</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-weight: bold; color: #1e3c72;">الحصة الدراسية:</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1;">{rep_data['period']}</td>
                 </tr>
-                <tr>
-                    <td style="padding: 8px; font-weight: bold;">المعلم الراصد:</td>
-                    <td style="padding: 8px;">{rep_data['teacher_name']}</td>
-                    <td style="padding: 8px; font-weight: bold;">تاريخ الرصد:</td>
-                    <td style="padding: 8px;">{rep_data['created_at']}</td>
+                <tr style="background-color: #f8fafc;">
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-weight: bold; color: #1e3c72;">المعلم الراصد:</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1;">{rep_data['teacher_name']}</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-weight: bold; color: #1e3c72;">رقم ولي الأمر:</td>
+                    <td style="padding: 9px 12px; border: 1px solid #cbd5e1; font-family: monospace;">{actual_phone_rep if actual_phone_rep else 'غير مسجل'}</td>
                 </tr>
             </table>
-            <hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
-            <div style="margin-bottom: 15px;">
-                <p style="margin: 5px 0;"><strong>درجة المخالفة:</strong> {rep_data['incident_degree']}</p>
-                <p style="margin: 5px 0;"><strong>نوع المخالفة:</strong> {rep_data['incident_type']}</p>
-                <p style="margin: 5px 0;"><strong>وصف المشكلة:</strong> {rep_data['description']}</p>
+
+            <!-- Section 1: Violation Details -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; margin-bottom: 16px; background-color: #ffffff;">
+                <div style="font-weight: bold; color: #1e3c72; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px; font-size: 15px;">
+                    ⚠️ تفاصيل الواقعة والمخالفة السلوكية:
+                </div>
+                <div style="display: flex; gap: 20px; margin-bottom: 8px; font-size: 14px;">
+                    <div><strong>درجة المخالفة:</strong> <span style="background-color: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 12px; font-weight: bold;">{rep_data['incident_degree']}</span></div>
+                    <div><strong>نوع المخالفة:</strong> {rep_data['incident_type']}</div>
+                </div>
+                <div style="font-size: 14px; line-height: 1.6; background: #f8fafc; padding: 10px 14px; border-radius: 6px; border-right: 4px solid #1e3c72;">
+                    <strong>وصف المشكلة (رصد المعلم):</strong> {rep_data['description']}
+                </div>
             </div>
-            <hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
-            <div style="margin-bottom: 15px;">
-                <p style="margin: 5px 0;"><strong>الإجراء المتخذ (الوكيل):</strong> {action_str}</p>
-                <p style="margin: 5px 0;"><strong>ملاحظات الوكيل:</strong> {notes_str}</p>
+
+            <!-- Section 2: Administrative Action -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; margin-bottom: 22px; background-color: #ffffff;">
+                <div style="font-weight: bold; color: #1e3c72; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px; font-size: 15px;">
+                    ⚖️ الإجراء الإداري والتوجيهات (وكيل شؤون الطلاب):
+                </div>
+                <div style="font-size: 14px; margin-bottom: 8px;">
+                    <strong>الإجراء النظامي المعتمد:</strong> <span style="color: #1e3c72; font-weight: bold;">{action_str}</span>
+                </div>
+                <div style="font-size: 14px; line-height: 1.6; background: #f8fafc; padding: 10px 14px; border-radius: 6px; border-right: 4px solid #2563eb;">
+                    <strong>ملاحظات وتوجيهات الوكيل:</strong> {notes_str}
+                </div>
             </div>
-            <div style="margin-top: 30px; display: flex; justify-content: space-between; text-align: center;">
-                <div><p><strong>المعلم الراصد</strong></p><p>{rep_data['teacher_name']}</p></div>
-                <div><p><strong>وكيل شؤون الطلاب</strong></p><p>___________________</p></div>
-                <div><p><strong>مدير المدرسة</strong></p><p>___________________</p></div>
+
+            <!-- Section 3: Official Signatures Block -->
+            <div style="margin-top: 25px; padding-top: 15px; border-top: 2px dashed #cbd5e1;">
+                <div style="display: flex; justify-content: space-between; text-align: center; font-size: 14px;">
+                    <div style="width: 30%;">
+                        <p style="margin: 0 0 35px 0; font-weight: bold; color: #1e3c72;">المعلم الراصد</p>
+                        <p style="margin: 0; font-weight: bold;">{rep_data['teacher_name']}</p>
+                    </div>
+                    <div style="width: 30%;">
+                        <p style="margin: 0 0 35px 0; font-weight: bold; color: #1e3c72;">وكيل شؤون الطلاب</p>
+                        <p style="margin: 0;">....................................</p>
+                    </div>
+                    <div style="width: 30%;">
+                        <p style="margin: 0 0 35px 0; font-weight: bold; color: #1e3c72;">مدير المدرسة والختم</p>
+                        <p style="margin: 0;">....................................</p>
+                    </div>
+                </div>
             </div>
+
         </div>
         """
         st.markdown(report_html, unsafe_allow_html=True)
 
 ### Footer Credits
 st.markdown("""
-<hr style="margin-top: 40px; border: 0; border-top: 1px solid #ddd;">
-<div style="text-align: center; color: #777; font-size: 13px; padding-bottom: 10px;">
+<hr class="no-print" style="margin-top: 40px; border: 0; border-top: 1px solid #ddd;">
+<div class="no-print" style="text-align: center; color: #777; font-size: 13px; padding-bottom: 10px;">
     نظام الانضباط المدرسي © 2026 - متوسطة الثغر النموذجية الأهلية
 </div>
 """, unsafe_allow_html=True)
