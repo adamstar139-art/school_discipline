@@ -18,19 +18,116 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-### Global CSS Rules for RTL and Clean Printing
+### Global CSS Rules for RTL and Professional Styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-    html, body, [class*="css"]  {
-        font-family: 'Tajawal', sans-serif;
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+    
+    html, body, [class*="css"], .stApp {
+        font-family: 'Tajawal', sans-serif !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Force right alignment on Streamlit text, markdown, headings, and input labels */
+    .stMarkdown, .stText, p, span, h1, h2, h3, h4, h5, h6, label, div[data-testid="stMarkdownContainer"] p {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+
+    /* Streamlit input fields right-aligned */
+    div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
+        text-align: right !important;
+        direction: rtl !important;
+        font-family: 'Tajawal', sans-serif !important;
+    }
+
+    /* Expander Container Styling */
+    .stExpander {
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03) !important;
+        margin-bottom: 14px !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    
+    .stExpander summary {
+        direction: rtl !important;
+        text-align: right !important;
+        font-weight: 700 !important;
+        color: #1e3c72 !important;
+        font-size: 16px !important;
+    }
+
+    /* Incident Card Box Styling */
+    .incident-box {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-right: 6px solid #1e3c72;
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         direction: rtl;
         text-align: right;
     }
-    .stApp {
+
+    .incident-title {
+        color: #1e3c72;
+        font-size: 19px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         direction: rtl;
         text-align: right;
     }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+        text-align: right;
+        direction: rtl;
+    }
+
+    .info-item {
+        background: #ffffff;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: right;
+        direction: rtl;
+    }
+
+    .info-label {
+        font-weight: 700;
+        color: #475569;
+        display: block;
+        font-size: 13px;
+        margin-bottom: 3px;
+    }
+
+    .info-value {
+        color: #0f172a;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    /* Degree Badges */
+    .badge-deg-1 { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+    .badge-deg-2 { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+    .badge-deg-3 { background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+    .badge-deg-4 { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+    .badge-deg-5 { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+
     @media print {
         .stSidebar, header, footer, .stButton, .no-print {
             display: none !important;
@@ -45,9 +142,9 @@ st.markdown("""
 
 ### Main Top Header Banner
 st.markdown("""
-<div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-    <h1 style="color: white; margin: 0; font-size: 28px;">🏫 نظام تدوين المخالفات السلوكية والانضباط المدرسي</h1>
-    <h3 style="color: #e0e0e0; margin-top: 8px; font-size: 18px; font-weight: normal;">متوسطة الثغر النموذجية الأهلية</h3>
+<div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 22px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <h1 style="color: white; margin: 0; font-size: 28px; text-align: center !important;">🏫 نظام تدوين المخالفات السلوكية والانضباط المدرسي</h1>
+    <h3 style="color: #e0e0e0; margin-top: 8px; font-size: 18px; font-weight: normal; text-align: center !important;">متوسطة الثغر النموذجية الأهلية</h3>
 </div>
 """, unsafe_allow_html=True)
 
@@ -232,7 +329,7 @@ def init_db():
         ('1167371093', 'يوسف عايد عواد البلوي', 'الصف الثاني المتوسط', 'فصل 3', '966531066289'),
 
         # 3rd Intermediate
-        ('1158966166', 'أصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1', '966552149044'),
+        ('1158966166', 'أاصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1', '966552149044'),
         ('1156933093', 'تركي عبدالعزيز عبدالله المرزوق', 'الصف الثالث المتوسط', 'فصل 2', '966501100076'),
         ('1160223317', 'تركي عثمان عبدالعزيز العثمان', 'الصف الثالث المتوسط', 'فصل 2', '966505226153'),
         ('1163525544', 'ثامر وليد بن عبدالعزيز الطليحي', 'الصف الثالث المتوسط', 'فصل 3', '966504437710'),
@@ -309,26 +406,51 @@ def fetch_teachers():
     conn.close()
     return df['name'].tolist()
 
-def get_student_phone(student_id_or_name):
+def get_student_phone(student_id_or_name=None, student_name=None):
     """استدعاء رقم جوال ولي الأمر المعتمد تلقائياً من قاعدة البيانات باستعمال هوية الطالب أو اسمه"""
-    if not student_id_or_name:
+    if not student_id_or_name and not student_name:
         return ""
+    
     conn = get_connection()
     c = conn.cursor()
-    c.execute("SELECT phone FROM students WHERE id = ? OR name = ?", (str(student_id_or_name).strip(), str(student_id_or_name).strip()))
-    row = c.fetchone()
+    phone = ""
+    
+    sid = str(student_id_or_name).strip() if student_id_or_name else ""
+    sname = str(student_name).strip() if student_name else ""
+    
+    # 1. Search by exact student_id
+    if sid:
+        c.execute("SELECT phone FROM students WHERE id = ? OR TRIM(id) = ?", (sid, sid))
+        row = c.fetchone()
+        if row and row[0] and str(row[0]).strip():
+            phone = str(row[0]).strip()
+            
+    # 2. Search by student_name if phone still empty
+    if not phone and (sname or sid):
+        target_name = sname if sname else sid
+        c.execute("SELECT phone FROM students WHERE name = ? OR TRIM(name) = ?", (target_name, target_name))
+        row = c.fetchone()
+        if row and row[0] and str(row[0]).strip():
+            phone = str(row[0]).strip()
+        else:
+            # 3. Search by substring/LIKE name
+            c.execute("SELECT phone FROM students WHERE name LIKE ?", (f"%{target_name}%",))
+            row = c.fetchone()
+            if row and row[0] and str(row[0]).strip():
+                phone = str(row[0]).strip()
+                
     conn.close()
-    if row and row[0]:
-        return str(row[0]).strip()
-    return ""
+    return phone
 
 def update_student_phone(student_id_or_name, new_phone):
-    """تحديث ورصد رقم جوال ولي الأمر المعتمد في قاعدة البيانات باستعمال هوية الطالب أو اسمه"""
-    if not student_id_or_name:
+    """تحديث رقم جوال ولي الأمر في قاعدة البيانات للطلاب"""
+    if not student_id_or_name or not new_phone:
         return False
     conn = get_connection()
     c = conn.cursor()
-    c.execute("UPDATE students SET phone = ? WHERE id = ? OR name = ?", (str(new_phone).strip(), str(student_id_or_name).strip(), str(student_id_or_name).strip()))
+    val = str(student_id_or_name).strip()
+    p_val = str(new_phone).strip()
+    c.execute("UPDATE students SET phone = ? WHERE id = ? OR TRIM(id) = ? OR name = ? OR TRIM(name) = ?", (p_val, val, val, val, val))
     conn.commit()
     conn.close()
     return True
@@ -741,7 +863,7 @@ elif page in PROTECTED_PAGES and not st.session_state.authenticated:
                 st.error("❌ كلمة المرور غير صحيحة!")
 
 ### ==========================================
-### PAGE 2: Vice Principal Screen
+### PAGE 2: Vice Principal Screen (PROFESSIONAL RTL CARD FORMAT)
 ### ==========================================
 elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
     st.subheader("👨‍💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
@@ -757,26 +879,67 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
         pending_df = incidents_df[incidents_df['status'] == 'معلقة (بانتظار الإجراء)']
         processed_df = incidents_df[incidents_df['status'] != 'معلقة (بانتظار الإجراء)']
         
-        tab1, tab2, tab3 = st.tabs([f"📥 البلاغات الواردة الجديدة ({len(pending_df)})", f"✅ البلاغات المعالجة والمكتملة ({len(processed_df)})", "📢 إرسال إشعارات جماعية"])
+        tab1, tab2, tab3 = st.tabs([
+            f"📥 البلاغات الواردة الجديدة ({len(pending_df)})", 
+            f"✅ البلاغات المعالجة والمكتملة ({len(processed_df)})", 
+            "📢 إرسال إشعارات جماعية"
+        ])
         
         with tab1:
             if pending_df.empty:
-                st.success("لا توجد بلاغات معلقة جديدة.")
+                st.success("✨ لا توجد بلاغات معلقة جديدة حالياً.")
             else:
                 for _, row in pending_df.iterrows():
-                    with st.expander(f"🚨 بلاغ رقم #{row['id']} - الطالب: {row['student_name']} ({row['grade']} - {row['section']})"):
-                        col_a, col_b = st.columns(2)
-                        with col_a:
-                            st.write(f"**المعلم الراصد:** {row['teacher_name']}")
-                            st.write(f"**الصف والفصل:** {row['grade']} - {row['section']}")
-                            st.write(f"**الحصة:** {row['period']}")
-                            st.write(f"**تاريخ الرصد:** {row['created_at']}")
-                        with col_b:
-                            st.write(f"**درجة المخالفة:** {row['incident_degree']}")
-                            st.write(f"**نوع المخالفة:** {row['incident_type']}")
-                            st.write(f"**وصف المعلم للمشكلة:** {row['description']}")
+                    deg_str = str(row['incident_degree'])
+                    badge_class = "badge-deg-1"
+                    if "الثانية" in deg_str: badge_class = "badge-deg-2"
+                    elif "الثالثة" in deg_str: badge_class = "badge-deg-3"
+                    elif "الرابعة" in deg_str: badge_class = "badge-deg-4"
+                    elif "الخامسة" in deg_str or "السادسة" in deg_str: badge_class = "badge-deg-5"
+
+                    expander_title = f"🚨 بلاغ رقم #{row['id']} - الطالب: {row['student_name']} ({row['grade']} - {row['section']})"
+                    with st.expander(expander_title, expanded=True):
+                        # Professional HTML RTL Card Display
+                        card_html = f"""
+                        <div class="incident-box">
+                            <div class="incident-title">
+                                <span>🚨 بلاغ مخالفة سلوكية رقم #{row['id']}</span>
+                                <span class="{badge_class}">{row['incident_degree']}</span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">👤 اسم الطالب الثلاثي/الرباعي:</span>
+                                    <span class="info-value">{row['student_name']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">🆔 رقم الهوية / الطالب:</span>
+                                    <span class="info-value">{row['student_id']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">🏫 الصف والشعبة:</span>
+                                    <span class="info-value">{row['grade']} - {row['section']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">👨‍🏫 المعلم الراصد:</span>
+                                    <span class="info-value">{row['teacher_name']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">⏱️ الحصة وتاريخ الرصد:</span>
+                                    <span class="info-value">{row['period']} | {row['created_at']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">⚠️ درجة ونوع المخالفة:</span>
+                                    <span class="info-value">{row['incident_degree']} - {row['incident_type']}</span>
+                                </div>
+                            </div>
+                            <div class="info-item" style="margin-top: 10px; background-color: #fffbeb; border-color: #fde68a;">
+                                <span class="info-label" style="color: #92400e;">📄 وصف المعلم الراصد للمشكلة السلوكية:</span>
+                                <span class="info-value" style="color: #78350f;">{row['description']}</span>
+                            </div>
+                        </div>
+                        """
+                        st.markdown(card_html, unsafe_allow_html=True)
                         
-                        st.markdown("---")
                         st.subheader("⚖️ اتخاذ الإجراء النظامي بحسب قواعد السلوك والمواظبة:")
                         
                         deg = row['incident_degree']
@@ -786,7 +949,7 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
                             selected_proc = st.selectbox("اختر الإجراء المطلوب اتخاذه:", procedures_list, key=f"proc_{row['id']}")
                             vice_notes = st.text_area("تدوين ملاحظات وتوجيهات الوكيل:", placeholder="يكتب الوكيل هنا توجيهاته وملاحظاته...", key=f"notes_{row['id']}")
                             
-                            btn_proc = st.form_submit_button("حفظ وتأكيد الإجراء")
+                            btn_proc = st.form_submit_button("💾 حفظ وتأكيد الإجراء النظامي")
                             if btn_proc:
                                 conn = get_connection()
                                 c = conn.cursor()
@@ -797,32 +960,47 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
                                 ''', (selected_proc, vice_notes, row['id']))
                                 conn.commit()
                                 conn.close()
-                                st.success("تم اعتماد الإجراء بنجاح وتحديث حالة التقرير!")
+                                st.success("✅ تم اعتماد الإجراء بنجاح وتحديث حالة التقرير!")
                                 st.rerun()
                         
                         st.markdown("---")
-                        col_p_wa, col_p_del = st.columns([2, 1])
-                        with col_p_wa:
-                            # التعبئة التلقائية لرقم ولي الأمر من قاعدة البيانات
-                            st_phone_p = get_student_phone(row['student_id'])
-                            p_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر (تعبئة تلقائية):", value=st_phone_p, placeholder="05XXXXXXXX", key=f"wa_p_phone_{row['id']}")
+                        st.markdown("#### 📱 التواصل مع ولي الأمر عبر الواتساب:")
+                        
+                        # Auto-fetch phone number from students database (checking both ID and Name)
+                        st_phone_p = get_student_phone(row['student_id'], row['student_name'])
+                        phone_key_p = f"wa_p_phone_{row['id']}"
+                        
+                        # Set default state if not present or empty
+                        if phone_key_p not in st.session_state or not st.session_state[phone_key_p]:
+                            st.session_state[phone_key_p] = st_phone_p
                             
-                            col_p_btn1, col_p_btn2 = st.columns([1, 1])
-                            with col_p_btn1:
-                                if st.button("💾 تحديث رقم ولي الأمر بالقاعدة", key=f"btn_update_p_phone_{row['id']}", use_container_width=True):
-                                    if update_student_phone(row['student_id'], p_phone):
-                                        st.success("✅ تم تحديث رقم ولي الأمر بنجاح!")
-                                        st.rerun()
-                                    else:
-                                        st.error("❌ تعذر تحديث الرقم.")
-                            with col_p_btn2:
-                                p_wa_url = generate_whatsapp_link(p_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
-                                st.link_button(f"📲 إرسال بلاغ #{row['id']} عبر الواتساب", p_wa_url, use_container_width=True)
+                        p_phone = st.text_input(
+                            "📲 رقم جوال ولي الأمر (تعبئة تلقائية معتمدة من قاعدة البيانات):", 
+                            value=st_phone_p if st_phone_p else "", 
+                            placeholder="مثال: 9665XXXXXXXX", 
+                            key=phone_key_p
+                        )
+                        
+                        actual_phone_p = p_phone.strip() if p_phone and p_phone.strip() else st_phone_p
+                        
+                        col_p_wa_btn, col_p_save_btn, col_p_del = st.columns([1.5, 1.5, 1])
+                        with col_p_wa_btn:
+                            p_wa_url = generate_whatsapp_link(
+                                actual_phone_p, row['id'], row['student_name'], row['grade'], 
+                                row['section'], row['teacher_name'], row['created_at'], 
+                                row['incident_degree'], row['incident_type'], row['description'], 
+                                row['action_taken'], row['vice_notes']
+                            )
+                            st.link_button(f"📲 إرسال بلاغ #{row['id']} عبر الواتساب", p_wa_url, use_container_width=True)
+                        with col_p_save_btn:
+                            if st.button("💾 تحديث وتثبيت الرقم بالقاعدة", key=f"save_p_phone_{row['id']}", use_container_width=True):
+                                if update_student_phone(row['student_id'], actual_phone_p) or update_student_phone(row['student_name'], actual_phone_p):
+                                    st.session_state[phone_key_p] = actual_phone_p
+                                    st.success("✅ تم تحديث رقم ولي الأمر في قاعدة البيانات بنجاح!")
+                                    st.rerun()
 
                         with col_p_del:
-                            st.write("")
-                            st.write("")
-                            if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_pending_{row['id']}"):
+                            if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_pending_{row['id']}", use_container_width=True):
                                 conn = get_connection()
                                 c = conn.cursor()
                                 c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
@@ -833,38 +1011,93 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
 
         with tab2:
             if processed_df.empty:
-                st.info("لا توجد بلاغات معالجة حتى الآن.")
+                st.info("لا توجد بلاغات معالجة ومكتملة حتى الآن.")
             else:
                 for _, row in processed_df.iterrows():
-                    with st.expander(f"✅ بلاغ رقم #{row['id']} - الطالب: {row['student_name']} (تم اتخاذ الإجراء)"):
-                        st.write(f"**المعلم الراصد:** {row['teacher_name']} | **الحصة:** {row['period']}")
-                        st.write(f"**المخالفة:** {row['incident_degree']} - {row['incident_type']}")
-                        st.write(f"**الإجراء المتخذ:** {row['action_taken']}")
-                        st.write(f"**ملاحظات الوكيل:** {row['vice_notes']}")
+                    deg_str = str(row['incident_degree'])
+                    badge_class = "badge-deg-1"
+                    if "الثانية" in deg_str: badge_class = "badge-deg-2"
+                    elif "الثالثة" in deg_str: badge_class = "badge-deg-3"
+                    elif "الرابعة" in deg_str: badge_class = "badge-deg-4"
+                    elif "الخامسة" in deg_str or "السادسة" in deg_str: badge_class = "badge-deg-5"
+
+                    with st.expander(f"✅ بلاغ مكتمل #{row['id']} - الطالب: {row['student_name']} (الإجراء: {row['action_taken']})"):
+                        card_html = f"""
+                        <div class="incident-box" style="border-right-color: #10b981;">
+                            <div class="incident-title" style="color: #065f46;">
+                                <span>✅ بلاغ معالج رقم #{row['id']} - {row['student_name']}</span>
+                                <span class="{badge_class}">{row['incident_degree']}</span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">👤 اسم الطالب:</span>
+                                    <span class="info-value">{row['student_name']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">🆔 رقم الهوية / الطالب:</span>
+                                    <span class="info-value">{row['student_id']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">🏫 الصف والفصل:</span>
+                                    <span class="info-value">{row['grade']} - {row['section']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">👨‍🏫 المعلم الراصد:</span>
+                                    <span class="info-value">{row['teacher_name']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">⚖️ الإجراء المتخذ من الوكيل:</span>
+                                    <span class="info-value" style="color: #047857; font-weight: bold;">{row['action_taken']}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">⏱️ تاريخ وتوقيت المعالجة:</span>
+                                    <span class="info-value">{row['updated_at'] if row['updated_at'] else row['created_at']}</span>
+                                </div>
+                            </div>
+                            <div class="info-item" style="margin-top: 10px; background-color: #f0fdf4; border-color: #a7f3d0;">
+                                <span class="info-label" style="color: #065f46;">💬 ملاحظات وتوجيهات الوكيل:</span>
+                                <span class="info-value" style="color: #064e3b;">{row['vice_notes'] if row['vice_notes'] else 'لا توجد ملاحظات إضافية'}</span>
+                            </div>
+                        </div>
+                        """
+                        st.markdown(card_html, unsafe_allow_html=True)
                         
-                        st.markdown("---")
-                        col_pr_wa, col_pr_del = st.columns([2, 1])
-                        with col_pr_wa:
-                            # التعبئة التلقائية لرقم ولي الأمر من قاعدة البيانات
-                            st_phone_pr = get_student_phone(row['student_id'])
-                            pr_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر (تعبئة تلقائية):", value=st_phone_pr, placeholder="05XXXXXXXX", key=f"wa_pr_phone_{row['id']}")
+                        st.markdown("#### 📱 التواصل مع ولي الأمر عبر الواتساب:")
+                        
+                        # Auto-fetch phone number from students database (checking both ID and Name)
+                        st_phone_pr = get_student_phone(row['student_id'], row['student_name'])
+                        phone_key_pr = f"wa_pr_phone_{row['id']}"
+                        
+                        if phone_key_pr not in st.session_state or not st.session_state[phone_key_pr]:
+                            st.session_state[phone_key_pr] = st_phone_pr
                             
-                            col_pr_btn1, col_pr_btn2 = st.columns([1, 1])
-                            with col_pr_btn1:
-                                if st.button("💾 تحديث رقم ولي الأمر بالقاعدة", key=f"btn_update_pr_phone_{row['id']}", use_container_width=True):
-                                    if update_student_phone(row['student_id'], pr_phone):
-                                        st.success("✅ تم تحديث رقم ولي الأمر بنجاح!")
-                                        st.rerun()
-                                    else:
-                                        st.error("❌ تعذر تحديث الرقم.")
-                            with col_pr_btn2:
-                                pr_wa_url = generate_whatsapp_link(pr_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
-                                st.link_button(f"📲 إرسال التقرير #{row['id']} عبر الواتساب", pr_wa_url, use_container_width=True)
+                        pr_phone = st.text_input(
+                            "📲 رقم جوال ولي الأمر (تعبئة تلقائية معتمدة من قاعدة البيانات):", 
+                            value=st_phone_pr if st_phone_pr else "", 
+                            placeholder="مثال: 9665XXXXXXXX", 
+                            key=phone_key_pr
+                        )
+                        
+                        actual_phone_pr = pr_phone.strip() if pr_phone and pr_phone.strip() else st_phone_pr
+                        
+                        col_pr_wa_btn, col_pr_save_btn, col_pr_del = st.columns([1.5, 1.5, 1])
+                        with col_pr_wa_btn:
+                            pr_wa_url = generate_whatsapp_link(
+                                actual_phone_pr, row['id'], row['student_name'], row['grade'], 
+                                row['section'], row['teacher_name'], row['created_at'], 
+                                row['incident_degree'], row['incident_type'], row['description'], 
+                                row['action_taken'], row['vice_notes']
+                            )
+                            st.link_button(f"📲 إرسال التقرير #{row['id']} عبر الواتساب", pr_wa_url, use_container_width=True)
+                        with col_pr_save_btn:
+                            if st.button("💾 تحديث وتثبيت الرقم بالقاعدة", key=f"save_pr_phone_{row['id']}", use_container_width=True):
+                                if update_student_phone(row['student_id'], actual_phone_pr) or update_student_phone(row['student_name'], actual_phone_pr):
+                                    st.session_state[phone_key_pr] = actual_phone_pr
+                                    st.success("✅ تم تحديث رقم ولي الأمر في قاعدة البيانات بنجاح!")
+                                    st.rerun()
 
                         with col_pr_del:
-                            st.write("")
-                            st.write("")
-                            if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_proc_{row['id']}"):
+                            if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_proc_{row['id']}", use_container_width=True):
                                 conn = get_connection()
                                 c = conn.cursor()
                                 c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
@@ -901,7 +1134,7 @@ elif page == "🔍 البحث الشامل عن طالب":
         else:
             for _, student in st_df.iterrows():
                 st.markdown(f"### 👤 الطالب: {student['name']} (رقم الهوية/الطالب: `{student['id']}`)")
-                st.write(f"**الصف:** {student['grade']} | **الفصل:** {student['section']} | 📞 **رقم ولي الأمر:** `{student['phone'] if student['phone'] else 'غير مسجل'}`")
+                st.write(f"**الصف:** {student['grade']} | **الفصل:** {student['section']}")
                 
                 inc_df = pd.read_sql_query(
                     "SELECT * FROM incidents WHERE student_id = ? ORDER BY id DESC",
@@ -919,10 +1152,9 @@ elif page == "🔍 البحث الشامل عن طالب":
 ### PAGE 4: Student Management
 ### ==========================================
 elif page == "⚙️ إدارة بيانات الطلاب":
-    st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - تعديل الهاتف - حذف - نقل)")
-    m_tab0, m_tab_ph, m_tab1, m_tab2, m_tab3 = st.tabs([
+    st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - حذف - نقل)")
+    m_tab0, m_tab1, m_tab2, m_tab3 = st.tabs([
         "📜 عرض قوائم الطلاب والتوزيع",
-        "📱 تحديث رقم ولي الأمر",
         "➕ إضافة طالب جديد",
         "❌ حذف طالب",
         "🔄 نقل طالب من فصل لآخر"
@@ -953,27 +1185,7 @@ elif page == "⚙️ إدارة بيانات الطلاب":
                 'section': 'الفصل',
                 'phone': 'رقم جوال ولي الأمر'
             }), use_container_width=True)
-
-    with m_tab_ph:
-        st.markdown("#### 📱 تحديث رقم جوال ولي الأمر المعتمد لطالب")
-        all_st_ph = fetch_students()
-        st_list_ph = [f"{r['name']} ({r['id']}) - الرقم الحالي: {r['phone'] if r['phone'] else 'غير مسجل'}" for _, r in all_st_ph.iterrows()]
-        
-        if st_list_ph:
-            selected_st_ph = st.selectbox("اختر الطالب المراد تحديث رقم ولي أمره:", st_list_ph, key="ph_st_select")
-            st_ph_id = selected_st_ph.split("(")[1].split(")")[0]
-            current_ph = get_student_phone(st_ph_id)
-            new_ph_input = st.text_input("أدخل رقم الجوال الجديد لولي الأمر (مثال: 9665XXXXXXXX):", value=current_ph, key="new_ph_input_tab")
             
-            if st.button("💾 حفظ وتحديث رقم ولي الأمر في قاعدة البيانات", key="btn_update_ph_tab"):
-                if update_student_phone(st_ph_id, new_ph_input):
-                    st.success("✅ تم تحديث رقم جوال ولي الأمر بنجاح في قاعدة البيانات!")
-                    st.rerun()
-                else:
-                    st.error("❌ تعذر تحديث الرقم!")
-        else:
-            st.info("لا يوجد طلاب مسجلون في قاعدة البيانات.")
-
     with m_tab1:
         st.markdown("#### إضافة طالب جديد لقاعدة البيانات")
         with st.form("add_student_form", clear_on_submit=True):
@@ -1091,21 +1303,24 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             )
             
         with col_wa:
-            # التعبئة التلقائية لرقم جوال ولي الأمر المعتمد من قاعدة البيانات
-            st_parent_phone = get_student_phone(rep_data['student_id'])
-            phone_input = st.text_input("📲 رقم جوال ولي الأمر لإرسال التقرير عبر الواتساب (تعبئة تلقائية):", value=st_parent_phone, placeholder="05XXXXXXXX", key=f"phone_rep_{selected_id}")
+            st_parent_phone = get_student_phone(rep_data['student_id'], rep_data['student_name'])
+            phone_rep_key = f"phone_rep_{selected_id}"
+            if phone_rep_key not in st.session_state or not st.session_state[phone_rep_key]:
+                st.session_state[phone_rep_key] = st_parent_phone
+                
+            phone_input = st.text_input(
+                "📲 رقم جوال ولي الأمر لإرسال التقرير عبر الواتساب (تعبئة تلقائية):", 
+                value=st_parent_phone if st_parent_phone else "", 
+                placeholder="مثال: 9665XXXXXXXX", 
+                key=phone_rep_key
+            )
             
-            col_rep_btn1, col_rep_btn2 = st.columns([1, 1])
-            with col_rep_btn1:
-                if st.button("💾 تحديث الرقم بالقاعدة", key=f"btn_update_rep_phone_{selected_id}", use_container_width=True):
-                    if update_student_phone(rep_data['student_id'], phone_input):
-                        st.success("✅ تم تحديث رقم ولي الأمر بنجاح!")
-                        st.rerun()
-                    else:
-                        st.error("❌ تعذر تحديث الرقم.")
-            with col_rep_btn2:
+            actual_phone_rep = phone_input.strip() if phone_input and phone_input.strip() else st_parent_phone
+            
+            col_rep_wa_btn, col_rep_save_btn = st.columns([1, 1])
+            with col_rep_wa_btn:
                 wa_url = generate_whatsapp_link(
-                    phone_input, 
+                    actual_phone_rep, 
                     rep_data['id'], 
                     rep_data['student_name'], 
                     rep_data['grade'], 
@@ -1118,7 +1333,13 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                     rep_data['action_taken'], 
                     rep_data['vice_notes']
                 )
-                st.link_button("📲 إرسال التقرير عبر الواتساب", wa_url, use_container_width=True)
+                st.link_button("📲 إرسال عبر الواتساب", wa_url, use_container_width=True)
+            with col_rep_save_btn:
+                if st.button("💾 تحديث وتثبيت الرقم بالقاعدة", key=f"save_rep_phone_{selected_id}", use_container_width=True):
+                    if update_student_phone(rep_data['student_id'], actual_phone_rep) or update_student_phone(rep_data['student_name'], actual_phone_rep):
+                        st.session_state[phone_rep_key] = actual_phone_rep
+                        st.success("✅ تم تحديث رقم ولي الأمر في قاعدة البيانات بنجاح!")
+                        st.rerun()
         
         # Formatted Official Report Template
         action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة'
@@ -1163,17 +1384,17 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             </div>
             <div style="margin-top: 30px; display: flex; justify-content: space-between; text-align: center;">
                 <div><p><strong>المعلم الراصد</strong></p><p>{rep_data['teacher_name']}</p></div>
-                <div><p><strong>وكيل شؤون الطلاب</strong></p><p>........................</p></div>
-                <div><p><strong>مدير المدرسة</strong></p><p>........................</p></div>
+                <div><p><strong>وكيل شؤون الطلاب</strong></p><p>___________________</p></div>
+                <div><p><strong>مدير المدرسة</strong></p><p>___________________</p></div>
             </div>
         </div>
         """
         st.markdown(report_html, unsafe_allow_html=True)
 
-### Footer Credits at bottom of main application page
+### Footer Credits
 st.markdown("""
-<hr style="margin-top: 40px;">
-<div style="text-align: center; color: #777; font-size: 13px; padding: 10px;">
-    نظام تدوين المخالفات السلوكية والتعبئة التلقائية © متوسطة الثغر النموذجية الأهلية
+<hr style="margin-top: 40px; border: 0; border-top: 1px solid #ddd;">
+<div style="text-align: center; color: #777; font-size: 13px; padding-bottom: 10px;">
+    نظام الانضباط المدرسي © 2026 - متوسطة الثغر النموذجية الأهلية
 </div>
 """, unsafe_allow_html=True)
