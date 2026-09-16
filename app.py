@@ -1,4 +1,3 @@
-DEFAULT_STUDENT_PHONES_MAP = {}
 import os
 import sqlite3
 import tempfile
@@ -9,9 +8,11 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-### ==========================================
-### 1. Page Configuration & Custom Styling (RTL & Clean Print)
-### ==========================================
+DEFAULT_STUDENT_PHONES_MAP = {}
+
+##### ==========================================
+##### 1. Page Configuration & Custom Styling (RTL & Clean Print)
+##### ==========================================
 st.set_page_config(
     page_title="تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي - متوسطة الثغر النموذجية الأهلية",
     page_icon="🏫",
@@ -19,163 +20,75 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-### Global CSS Rules for RTL and Professional Styling
+##### Global CSS Rules for RTL and Professional Styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
-    
-    html, body, [class*="css"], .stApp {
-        font-family: 'Tajawal', sans-serif !important;
-        direction: rtl !important;
-        text-align: right !important;
-    }
-
-    /* Force right alignment on Streamlit text, markdown, headings, and input labels */
-    .stMarkdown, .stText, p, span, h1, h2, h3, h4, h5, h6, label, div[data-testid="stMarkdownContainer"] p {
-        text-align: right !important;
-        direction: rtl !important;
-    }
-
-    /* Streamlit input fields right-aligned */
-    div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
-        text-align: right !important;
-        direction: rtl !important;
-        font-family: 'Tajawal', sans-serif !important;
-    }
-
-    /* Expander Container Styling */
-    .stExpander {
-        border: 1px solid #cbd5e1 !important;
-        border-radius: 10px !important;
-        background-color: #ffffff !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.03) !important;
-        margin-bottom: 14px !important;
-        direction: rtl !important;
-        text-align: right !important;
-    }
-    
-    .stExpander summary {
-        direction: rtl !important;
-        text-align: right !important;
-        font-weight: 700 !important;
-        color: #1e3c72 !important;
-        font-size: 16px !important;
-    }
-
-    /* Incident Card Box Styling */
-    .incident-box {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-right: 6px solid #1e3c72;
-        border-radius: 10px;
-        padding: 18px 22px;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        direction: rtl;
-        text-align: right;
-    }
-
-    .incident-title {
-        color: #1e3c72;
-        font-size: 19px;
-        font-weight: 800;
-        margin-bottom: 14px;
-        border-bottom: 2px solid #e2e8f0;
-        padding-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        direction: rtl;
-        text-align: right;
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-        gap: 12px;
-        margin-bottom: 12px;
-        text-align: right;
-        direction: rtl;
-    }
-
-    .info-item {
-        background: #ffffff;
-        padding: 10px 14px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        font-size: 14px;
-        line-height: 1.6;
-        text-align: right;
-        direction: rtl;
-    }
-
-    .info-label {
-        font-weight: 700;
-        color: #475569;
-        display: block;
-        font-size: 13px;
-        margin-bottom: 3px;
-    }
-
-    .info-value {
-        color: #0f172a;
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    /* Degree Badges */
-    .badge-deg-1 { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
-    .badge-deg-2 { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
-    .badge-deg-3 { background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
-    .badge-deg-4 { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
-    .badge-deg-5 { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
-
-    @media print {
-        @page {
-            size: A4 portrait;
-            margin: 6mm 10mm 6mm 10mm;
-        }
-        html, body, .stApp, .main, .block-container {
-            background: #ffffff !important;
-            color: #000000 !important;
-            direction: rtl !important;
-            text-align: right !important;
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        .no-print, .header-banner, .stSidebar, [data-testid="stHeader"], [data-testid="stSidebar"], .stSelectbox, .stButton, header, footer, .stRadio, hr, div:has(> .no-print), div[data-testid="stForm"] {
-            display: none !important;
-        }
-        .a4-print-report {
-            border: 2px solid #1e3c72 !important;
-            border-radius: 10px !important;
-            padding: 16px 20px !important;
-            margin: 0 auto !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            page-break-inside: avoid !important;
-            font-family: 'Tajawal', sans-serif !important;
-            background-color: #ffffff !important;
-            color: #111111 !important;
-            box-shadow: none !important;
-        }
-    }
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+html, body, [class*="css"], div, p, span, h1, h2, h3, h4, h5, h6, input, button, select, textarea {
+    font-family: 'Tajawal', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+}
+.stApp {
+    background-color: #f8fafc;
+}
+.main .block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    max-width: 1200px;
+}
+.incident-box {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 15px;
+    border-right: 5px solid #1e3c72;
+}
+.incident-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1e3c72;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.badge-deg-1 { background-color: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+.badge-deg-2 { background-color: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+.badge-deg-3 { background-color: #ffedd5; color: #c2410c; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+.badge-deg-4 { background-color: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+.badge-deg-5 { background-color: #f3e8ff; color: #6b21a8; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+.info-item {
+    background-color: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid #f1f5f9;
+}
+.info-label { font-weight: bold; color: #64748b; display: block; font-size: 11px; margin-bottom: 2px; }
+.info-value { color: #1e293b; font-weight: 600; }
 </style>
 """, unsafe_allow_html=True)
 
-### Main Top Header Banner
+##### Main Top Header Banner
 st.markdown("""
-<div class="no-print header-banner" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 22px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-    <h1 style="color: white; margin: 0; font-size: 28px; text-align: center !important;">🏫 نظام تدوين المخالفات السلوكية والانضباط المدرسي</h1>
-    <h3 style="color: #e0e0e0; margin-top: 8px; font-size: 18px; font-weight: normal; text-align: center !important;">متوسطة الثغر النموذجية الأهلية</h3>
+<div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 22px 25px; border-radius: 12px; color: white; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(30,60,114,0.15); text-align: center;">
+    <h2 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800;">🏫 نظام تدوين المخالفات السلوكية والانضباط المدرسي</h2>
+    <p style="margin: 6px 0 0 0; color: #e2e8f0; font-size: 14px;">متوسطة الثغر النموذجية الأهلية - الإشراف والمتابعة اليومية</p>
 </div>
 """, unsafe_allow_html=True)
 
-### ==========================================
-### 2. Database Setup & Helper Functions
-### ==========================================
+##### ==========================================
+##### 2. Database Setup & Helper Functions
+##### ==========================================
 DB_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(DB_DIR, 'school_discipline.db')
 
@@ -419,7 +332,7 @@ def init_db():
         ('1168385894', 'يوسف نايف مقعد العتيبي', 'الصف الثالث المتوسط', 'فصل 1', '966505290037')
     ]
     c.executemany("INSERT OR IGNORE INTO students (id, name, grade, section, phone) VALUES (?, ?, ?, ?, ?)", default_students)
-    
+
     # Force update phone for existing records where phone IS NULL or empty
     for st_item in default_students:
         sid, sname, sgrade, ssec, sphone = st_item
@@ -451,14 +364,14 @@ def get_student_phone(student_id_or_name=None, student_name=None):
     """استدعاء رقم جوال ولي الأمر المعتمد تلقائياً من قاعدة البيانات باستعمال هوية الطالب أو اسمه مع نظام استعادة البيانات المضمونة"""
     sid = str(student_id_or_name).strip() if student_id_or_name else ""
     sname = str(student_name).strip() if student_name else ""
-    
+
     if not sid and not sname:
         return ""
         
     phone = ""
     conn = get_connection()
     c = conn.cursor()
-    
+
     # 1. Exact ID match
     if sid:
         c.execute("SELECT phone FROM students WHERE id = ? OR TRIM(id) = ?", (sid, sid))
@@ -515,7 +428,7 @@ def generate_whatsapp_link(phone_num, rep_id, student_name, grade, section, teac
         clean_phone = "966" + clean_phone[1:]
     elif not clean_phone.startswith("966") and len(clean_phone) == 9 and clean_phone.startswith("5"):
         clean_phone = "966" + clean_phone
-        
+
     action_str = action_taken if action_taken else "قيد المعالجة"
     notes_str = vice_notes if vice_notes else "لا توجد ملاحظات إضافية"
 
@@ -523,20 +436,20 @@ def generate_whatsapp_link(phone_num, rep_id, student_name, grade, section, teac
 
 --------------------------------------------------------------------------------
 
-#### 📌  *رقم التقرير:*  #{rep_id}
-👤  *اسم الطالب:*  {student_name}
-🏫  *الصف والفصل:*  {grade} - {section}
-👨‍🏫  *المعلم الراصد:*  {teacher_name}
-📅  *تاريخ الرصد:*  {created_at}
+📌 *رقم التقرير:* #{rep_id}
+👤 *اسم الطالب:* {student_name}
+🏫 *الصف والفصل:* {grade} - {section}
+👨‍🏫 *المعلم الراصد:* {teacher_name}
+📅 *تاريخ الرصد:* {created_at}
 
-#### ⚠️  *درجة المخالفة:*  {incident_degree}
-📝  *نوع المخالفة:*  {incident_type}
-📄  *وصف المشكلة:*  {description}
+⚠️ *درجة المخالفة:* {incident_degree}
+📝 *نوع المخالفة:* {incident_type}
+📄 *وصف المشكلة:* {description}
 
-#### ⚖️  *الإجراء المتخذ (الوكيل):*  {action_str}
-💬  *ملاحظات الوكيل:*  {notes_str}
+⚖️ *الإجراء المتخذ (الوكيل):* {action_str}
+💬 *ملاحظات الوكيل:* {notes_str}
 
-*إدارة متوسطة الثغر النموذجية الأهلية* """
+*إدارة متوسطة الثغر النموذجية الأهلية*"""
     encoded_msg = urllib.parse.quote(msg)
     if clean_phone and len(clean_phone) >= 9:
         return f"https://wa.me/{clean_phone}?text={encoded_msg}"
@@ -556,7 +469,7 @@ def fetch_students(grade=None, section=None):
         params.append(section)
     query += " ORDER BY name"
     df = pd.read_sql_query(query, conn, params=params)
-    
+
     if df.empty:
         init_db()
         conn2 = get_connection()
@@ -566,13 +479,13 @@ def fetch_students(grade=None, section=None):
     conn.close()
     return df
 
-### Initialize Session State for Authentication
+##### Initialize Session State for Authentication
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'print_authenticated' not in st.session_state:
     st.session_state.print_authenticated = False
 
-### Violations & Procedures Data
+##### Violations & Procedures Data
 VIOLATION_RULES = {
     "الدرجة الأولى (المخالفات البسيطة)": [
         "عدم الالتزام بالزي المدرسي أو المظهر العام",
@@ -612,33 +525,34 @@ VIOLATION_RULES = {
 
 PROCEDURES_BY_DEGREE = {
     "الدرجة الأولى (المخالفات البسيطة)": [
-        "التنبيه الشفهي الأول وإشعار الطالب بمخالفته",
-        "التنبيه الشفهي الثاني مع كتابة تعهد خطي على الطالب",
-        "إشعار ولي الأمر هاتفياً بالواقعة وتوثيق ذلك",
-        "خصم درجة واحدة من درجات السلوك والمواظبة"
+        "التنبيه الشفهي الانفرادي من المعلم",
+        "تأدية الطالب واجبات إضافية بحدود الموضوع",
+        "تعهد خطي على الطالب بعدم التكرار",
+        "إشعار ولي الأمر هاتفياً بمخالفة الطالب"
     ],
     "الدرجة الثانية (المخالفات متوسطة الشدة)": [
-        "أخذ تعهد خطي على الطالب بالتزام السلوك الحسني",
-        "استدعاء ولي أمر الطالب وتوقيعه على بالعلم بالإجراء",
-        "تحويل الطالب للموجه الطلابي لدراسة حالته السلوكية",
-        "خصم درجتين من درجات السلوك وتأدية خدمات مدرسة إيجابية"
+        "تأدية خدمات مدرسية إيجابية مناسبة",
+        "تعهد خطي على الطالب مع إشعار ولي الأمر خطياً",
+        "حسم درجة من درجات السلوك مع تمكين الطالب من تعويضها",
+        "استدعاء ولي الأمر وتوقيع تعهد بعدم التكرار"
     ],
     "الدرجة الثالثة (المخالفات الخطيرة)": [
-        "استدعاء فوري لولي الأمر وأخذ تعهد خطي مشدد",
-        "إحالة الطالب المباشرة للموجه الطلابي لوضع برنامج تعديل سلوك",
-        "نقل الطالب إلى فصل آخر داخل المدرسة",
-        "خصم (3) درجات من درجات السلوك وإشعار ولي الأمر رسمياً"
+        "نقل الطالب إلى فصل آخر بالمدرسة",
+        "حسم درجتين من درجات السلوك مع إشعار ولي الأمر",
+        "استدعاء ولي الأمر وأخذ تعهد خطي عليه وعلى الطالب",
+        "إحالة الطالب للموجه الطلابي لدراسة حالته"
     ],
     "الدرجة الرابعة (المخالفات شديدة الخطورة)": [
-        "انعقاد لجنة التوجيه والطلاب بالمدرسة لاتخاذ القرار",
-        "خصم (5) درجات من درجات السلوك",
-        "إيقاف الطالب عن الدراسة لمدة لا تتجاوز 3 أيام مع إشعار ولي الأمر",
-        "تحويل الطالب إلى مركز التوجيه والإرشاد بالإدارة التعليمية"
+        "حسم ثلاث درجات من درجات السلوك",
+        "استدعاء ولي الأمر وأخذ تعهد شديد اللهجة",
+        "إحالة الطالب إلى لجنة التوجيه والطلاب بالمدرسة",
+        "إيقاف الطالب عن الدراسة لمدة لا تتجاوز ثلاثة أيام"
     ],
     "الدرجة الخامسة والسادسة (المخالفات بالغ الخطورة)": [
-        "الرفع الفوري لإدارة التعليم بالمنطقة لاتخاذ الإجراء النظامي الشامل",
-        "خصم (10) درجات من مادة السلوك",
-        "نقل الطالب إلى مدرسة أخرى أو الحرمان من الدراسة وفق القواعد"
+        "حسم عشر درجات من السلوك مع إشعار ولي الأمر فوراً",
+        "رفع الموضوع لإدارة التعليم لاتخاذ الإجراء النظامي الشديد",
+        "حرمان الطالب من الدراسة في المدرسة ونقله لمدرسة أخرى",
+        "تحويل القضية للجهات الأمنية المختصة إذا لزم الأمر"
     ]
 }
 
@@ -803,9 +717,10 @@ def render_bulk_notification_section():
     else:
         st.warning("⚠️ لا يوجد طلاب مطابقون للتصفية المختارة.")
 
-### ==========================================
-### 3. Sidebar Navigation & Login Handling
-### ==========================================
+
+##### ==========================================
+##### 3. Sidebar Navigation & Login Handling
+##### ==========================================
 st.sidebar.title("📌 القائمة الرئيسية")
 page = st.sidebar.radio(
     "اختر الشاشة المطلوب الانتقال إليها:",
@@ -828,7 +743,7 @@ PROTECTED_PAGES = [
     "🖨️ طباعة وتصدير التقرير"
 ]
 
-### Global Sidebar Authentication Check for All Protected Pages
+##### Global Sidebar Authentication Check for All Protected Pages
 if page in PROTECTED_PAGES:
     if not st.session_state.authenticated:
         st.sidebar.markdown("---")
@@ -846,10 +761,26 @@ if page in PROTECTED_PAGES:
             st.session_state.authenticated = False
             st.rerun()
 
-### ==========================================
-### PAGE 1: Teacher Screen
-### ==========================================
-if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
+##### ==========================================
+##### GLOBAL PROTECTED PAGES LOGIN ENFORCEMENT
+##### ==========================================
+if page in PROTECTED_PAGES and not st.session_state.authenticated:
+    st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة لتسجيل الدخول.")
+    with st.form("global_main_login_form"):
+        pwd_main = st.text_input("أدخل كلمة المرور:", type="password", key="main_pwd_input_global")
+        btn_login_main = st.form_submit_button("🔓 تسجيل الدخول للشاشة")
+        if btn_login_main:
+            if pwd_main == "9009":
+                st.session_state.authenticated = True
+                st.success("تم تسجيل الدخول بنجاح!")
+                st.rerun()
+            else:
+                st.error("❌ كلمة المرور غير صحيحة!")
+
+##### ==========================================
+##### PAGE 1: Teacher Screen
+##### ==========================================
+elif page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
     st.subheader("📋 شاشة المعلم - رصد المخالفة السلوكية")
     st.info("💡 اختر الصف والفصل لتحديث قائمة الطلاب المنسدلة تلقائياً.")
 
@@ -900,25 +831,9 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
             conn.close()
             st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل شؤون الطلاب!")
 
-### ==========================================
-### GLOBAL PROTECTED PAGES LOGIN ENFORCEMENT
-### ==========================================
-elif page in PROTECTED_PAGES and not st.session_state.authenticated:
-    st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة لتسجيل الدخول.")
-    with st.form("global_main_login_form"):
-        pwd_main = st.text_input("أدخل كلمة المرور:", type="password", key="main_pwd_input_global")
-        btn_login_main = st.form_submit_button("🔓 تسجيل الدخول للشاشة")
-        if btn_login_main:
-            if pwd_main == "9009":
-                st.session_state.authenticated = True
-                st.success("تم تسجيل الدخول بنجاح!")
-                st.rerun()
-            else:
-                st.error("❌ كلمة المرور غير صحيحة!")
-
-### ==========================================
-### PAGE 2: Vice Principal Screen (PROFESSIONAL RTL CARD FORMAT)
-### ==========================================
+##### ==========================================
+##### PAGE 2: Vice Principal Screen (PROFESSIONAL RTL CARD FORMAT)
+##### ==========================================
 elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
     st.subheader("👨‍💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
 
@@ -1163,15 +1078,15 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
         with tab3:
             render_bulk_notification_section()
 
-### ==========================================
-### PAGE 2.5: Bulk Notifications Screen
-### ==========================================
+##### ==========================================
+##### PAGE 2.5: Bulk Notifications Screen
+##### ==========================================
 elif page == "📢 إرسال إشعارات جماعية":
     render_bulk_notification_section()
 
-### ==========================================
-### PAGE 3: Student Search
-### ==========================================
+##### ==========================================
+##### PAGE 3: Student Search
+##### ==========================================
 elif page == "🔍 البحث الشامل عن طالب":
     st.subheader("🔍 البحث الشامل عن سجل طالب سلوكي")
     search_query = st.text_input("أدخل اسم الطالب أو رقم هويته للبحث في القاعدة:")
@@ -1202,15 +1117,15 @@ elif page == "🔍 البحث الشامل عن طالب":
                     st.dataframe(inc_df[['id', 'teacher_name', 'period', 'incident_degree', 'incident_type', 'action_taken', 'status', 'created_at']], use_container_width=True)
         conn.close()
 
-### ==========================================
-### PAGE 4: Student Management
-### ==========================================
+##### ==========================================
+##### PAGE 4: Student Management
+##### ==========================================
 elif page == "⚙️ إدارة بيانات الطلاب":
     st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - حذف - نقل)")
     m_tab0, m_tab1, m_tab2, m_tab3 = st.tabs([
-        "📜 عرض قوائم الطلاب والتوزيع",
-        "➕ إضافة طالب جديد",
-        "❌ حذف طالب",
+        "📜 عرض قوائم الطلاب والتوزيع", 
+        "➕ إضافة طالب جديد", 
+        "❌ حذف طالب", 
         "🔄 نقل طالب من فصل لآخر"
     ])
 
@@ -1307,9 +1222,9 @@ elif page == "⚙️ إدارة بيانات الطلاب":
         else:
             st.info("لا يوجد طلاب لنقلهم.")
 
-### ==========================================
-### PAGE 5: Printing & Exporting Reports
-### ==========================================
+##### ==========================================
+##### PAGE 5: Printing & Exporting Reports
+##### ==========================================
 elif page == "🖨️ طباعة وتصدير التقرير":
     st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
     
@@ -1323,15 +1238,15 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         report_options = [f"تقرير #{r['id']} - الطالب: {r['student_name']} - تاريخ: {r['created_at']}" for _, r in inc_df.iterrows()]
         selected_rep = st.selectbox("اختر التقرير المراد معاينته وطباعته:", report_options)
         
-        selected_id = int(selected_rep.split("#")[1].split(" -"))
+        selected_id = int(selected_rep.split("#")[1].split(" -")[0])
         conn = get_connection()
-        rep_data = pd.read_sql_query("SELECT * FROM incidents WHERE id = ?", conn, params=[selected_id]).iloc
+        rep_data = pd.read_sql_query("SELECT * FROM incidents WHERE id = ?", conn, params=[selected_id]).iloc[0]
         conn.close()
         
         st.markdown("---")
         
         # Interactive Direct Print Button & WhatsApp Share Section
-        col_print, col_wa = st.columns([1])
+        col_print, col_wa = st.columns([1, 1])
         
         with col_print:
             components.html(
@@ -1371,7 +1286,7 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             
             actual_phone_rep = phone_input.strip() if phone_input and phone_input.strip() else st_parent_phone
             
-            col_rep_wa_btn, col_rep_save_btn = st.columns([1])
+            col_rep_wa_btn, col_rep_save_btn = st.columns([1, 1])
             with col_rep_wa_btn:
                 wa_url = generate_whatsapp_link(
                     actual_phone_rep, 
@@ -1394,7 +1309,7 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                         st.session_state[phone_rep_key] = actual_phone_rep
                         st.success("✅ تم تحديث رقم ولي الأمر في قاعدة البيانات بنجاح!")
                         st.rerun()
-    
+        
         # Formatted Official Report Template for A4 Print (Without Main Header Banner, Single A4 Page)
         action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة والإجراء النظامي'
         notes_str = rep_data['vice_notes'] if rep_data['vice_notes'] else 'لا توجد ملاحظات إضافية'
@@ -1509,5 +1424,3 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         </div>
         """
         st.markdown(textwrap.dedent(report_html), unsafe_allow_html=True)
-
-
