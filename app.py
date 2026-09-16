@@ -1341,7 +1341,7 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                 <div style="text-align: right; font-size: 13px; line-height: 1.6; color: #222;">
                     <strong>المملكة العربية السعودية</strong><br>
                     <strong>وزارة التعليم</strong><br>
-                    <strong>إدارة التعليم بمحافظة جدة</strong><br>
+                    <strong>إدارة التعليم بمنطقة الرياض </strong><br>
                     <strong>متوسطة الثغر النموذجية الأهلية</strong>
                 </div>
                 <div style="text-align: center;">
@@ -1418,11 +1418,11 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                     </div>
                     <div style="width: 30%;">
                         <p style="margin: 0 0 35px 0; font-weight: bold; color: #1e3c72;">وكيل شؤون الطلاب</p>
-                        <p style="margin: 0;">....................................</p>
+                        <p style="margin: 0;">صالح بن عبدالله الدعجاني </p>
                     </div>
                     <div style="width: 30%;">
                         <p style="margin: 0 0 35px 0; font-weight: bold; color: #1e3c72;">مدير المدرسة والختم</p>
-                        <p style="margin: 0;">....................................</p>
+                        <p style="margin: 0;">إبراهيم بن موسى التميمي</p>
                     </div>
                 </div>
             </div>
