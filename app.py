@@ -8,9 +8,9 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-# ==========================================
-# 1. Page Configuration & Custom Styling (RTL & Clean Print)
-# ==========================================
+### ==========================================
+### 1. Page Configuration & Custom Styling (RTL & Clean Print)
+### ==========================================
 st.set_page_config(
     page_title="تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي - متوسطة الثغر النموذجية الأهلية",
     page_icon="🏫",
@@ -18,114 +18,42 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Global CSS Rules for RTL and Clean Printing
+### Global CSS Rules for RTL and Clean Printing
 st.markdown("""
 <style>
-/* Global RTL Direction & Text Alignment */
-html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stSidebar"], [data-testid="stHeader"] {
-    direction: rtl !important;
-    text-align: right !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-p, h1, h2, h3, h4, h5, h6, span, div, label, input, textarea, select, button, [data-baseweb="tab"] {
-    direction: rtl !important;
-    text-align: right !important;
-}
-.stSelectbox, .stTextInput, .stTextArea, .stButton, .stForm, [data-testid="stSidebarNav"] {
-    direction: rtl !important;
-    text-align: right !important;
-}
-.stDataFrame, .stTable {
-    direction: rtl !important;
-}
-div[role="radiogroup"] {
-    direction: rtl !important;
-    text-align: right !important;
-}
-.stTabs [data-baseweb="tab-list"] {
-    direction: rtl !important;
-    justify-content: flex-start !important;
-}
-
-/* Header Banner Styling */
-.header-banner {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
-    padding: 22px;
-    border-radius: 12px;
-    text-align: center;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    border: 2px solid #ffffff;
-}
-.header-banner h2 {
-    color: #ffffff !important;
-    font-size: 22px !important;
-    font-weight: 800 !important;
-    margin: 0 0 5px 0 !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-}
-.header-banner h3 {
-    color: #f0f4f8 !important;
-    font-size: 17px !important;
-    margin: 0 0 8px 0 !important;
-}
-.header-banner h4 {
-    color: #ffd700 !important;
-    font-size: 20px !important;
-    font-weight: bold !important;
-    margin: 8px 0 0 0 !important;
-}
-
-/* Print Template Container */
-.print-report {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    border: 2px solid #1e3c72;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    direction: rtl !important;
-    text-align: right !important;
-    color: #2c3e50;
-}
-.table-container table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-.table-container th, .table-container td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
-.table-container th { background-color: #f1f5f9; color: #1e3c72; font-weight: bold; }
-.signatures-grid { display: flex; justify-content: space-between; margin-top: 35px; text-align: center; }
-.sig-col { width: 23%; }
-
-/* Footer Credits */
-.footer-credits {
-    text-align: center;
-    margin-top: 40px;
-    padding: 15px;
-    border-top: 1px solid #e2e8f0;
-    font-size: 14px;
-    color: #475569;
-    font-weight: bold;
-}
-
-@media print {
-    body * { visibility: hidden !important; }
-    .print-report, .print-report * { visibility: visible !important; }
-    .print-report { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; border: none !important; box-shadow: none !important; }
-    .no-print, [data-testid="stSidebar"], [data-testid="stHeader"], .header-banner, .footer-credits { display: none !important; }
-}
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+    html, body, [class*="css"]  {
+        font-family: 'Tajawal', sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+    .stApp {
+        direction: rtl;
+        text-align: right;
+    }
+    @media print {
+        .stSidebar, header, footer, .stButton, .no-print {
+            display: none !important;
+        }
+        .main .block-container {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Main Top Header Banner
+### Main Top Header Banner
 st.markdown("""
-<div class="header-banner">
-<h2>المملكة العربية السعودية - وزارة التعليم</h2>
-<h3>الإدارة العامة للتعليم بمنطقة الرياض | متوسطة الثغر النموذجية الأهلية - بنين</h3>
-<h4>تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي</h4>
+<div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <h1 style="color: white; margin: 0; font-size: 28px;">🏫 نظام تدوين المخالفات السلوكية والانضباط المدرسي</h1>
+    <h3 style="color: #e0e0e0; margin-top: 8px; font-size: 18px; font-weight: normal;">متوسطة الثغر النموذجية الأهلية</h3>
 </div>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 2. Database Setup & Helper Functions
-# ==========================================
+### ==========================================
+### 2. Database Setup & Helper Functions
+### ==========================================
 DB_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(DB_DIR, 'school_discipline.db')
 
@@ -304,7 +232,7 @@ def init_db():
         ('1167371093', 'يوسف عايد عواد البلوي', 'الصف الثاني المتوسط', 'فصل 3', '966531066289'),
 
         # 3rd Intermediate
-        ('1158966166', 'أصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1', '966552149044'),
+        ('1158966166', 'أاصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1', '966552149044'),
         ('1156933093', 'تركي عبدالعزيز عبدالله المرزوق', 'الصف الثالث المتوسط', 'فصل 2', '966501100076'),
         ('1160223317', 'تركي عثمان عبدالعزيز العثمان', 'الصف الثالث المتوسط', 'فصل 2', '966505226153'),
         ('1163525544', 'ثامر وليد بن عبدالعزيز الطليحي', 'الصف الثالث المتوسط', 'فصل 3', '966504437710'),
@@ -381,8 +309,8 @@ def fetch_teachers():
     conn.close()
     return df['name'].tolist()
 
-
 def get_student_phone(student_id_or_name):
+    """استدعاء رقم جوال ولي الأمر المعتمد تلقائياً من قاعدة البيانات باستعمال هوية الطالب أو اسمه"""
     if not student_id_or_name:
         return ""
     conn = get_connection()
@@ -403,23 +331,25 @@ def generate_whatsapp_link(phone_num, rep_id, student_name, grade, section, teac
         
     action_str = action_taken if action_taken else "قيد المعالجة"
     notes_str = vice_notes if vice_notes else "لا توجد ملاحظات إضافية"
-    
+
     msg = f"""*تقرير مخالفة سلوكية - متوسطة الثغر النموذجية الأهلية* 🏫
------------------------------------
-📌 *رقم التقرير:* #{rep_id}
-👤 *اسم الطالب:* {student_name}
-🏫 *الصف والفصل:* {grade} - {section}
-👨🏫 *المعلم الراصد:* {teacher_name}
-📅 *تاريخ الرصد:* {created_at}
------------------------------------
-⚠️ *درجة المخالفة:* {incident_degree}
-📝 *نوع المخالفة:* {incident_type}
-📄 *وصف المشكلة:* {description}
------------------------------------
-⚖️ *الإجراء المتخذ (الوكيل):* {action_str}
-💬 *ملاحظات الوكيل:* {notes_str}
------------------------------------
-*إدارة متوسطة الثغر النموذجية الأهلية*"""
+
+--------------------------------------------------------------------------------
+
+#### 📌  *رقم التقرير:*  #{rep_id}
+👤  *اسم الطالب:*  {student_name}
+🏫  *الصف والفصل:*  {grade} - {section}
+👨‍🏫  *المعلم الراصد:*  {teacher_name}
+📅  *تاريخ الرصد:*  {created_at}
+
+#### ⚠️  *درجة المخالفة:*  {incident_degree}
+📝  *نوع المخالفة:*  {incident_type}
+📄  *وصف المشكلة:*  {description}
+
+#### ⚖️  *الإجراء المتخذ (الوكيل):*  {action_str}
+💬  *ملاحظات الوكيل:*  {notes_str}
+
+*إدارة متوسطة الثغر النموذجية الأهلية* """
     encoded_msg = urllib.parse.quote(msg)
     if clean_phone and len(clean_phone) >= 9:
         return f"https://wa.me/{clean_phone}?text={encoded_msg}"
@@ -449,13 +379,13 @@ def fetch_students(grade=None, section=None):
     conn.close()
     return df
 
-# Initialize Session State for Authentication
+### Initialize Session State for Authentication
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'print_authenticated' not in st.session_state:
     st.session_state.print_authenticated = False
 
-# Violations & Procedures Data
+### Violations & Procedures Data
 VIOLATION_RULES = {
     "الدرجة الأولى (المخالفات البسيطة)": [
         "عدم الالتزام بالزي المدرسي أو المظهر العام",
@@ -528,7 +458,7 @@ PROCEDURES_BY_DEGREE = {
 def render_bulk_notification_section():
     st.subheader("📢 إرسال إشعارات ورسائل جماعية لأولياء الأمور")
     st.info("💡 تتيح هذه الشاشة للوكيل أو المدير كتابة رسالة نصية جماعية وتحديد الفئة المستهدفة ثم إرسالها فوراً لأولياء الأمور عبر الواتساب.")
-    
+
     col_f1, col_f2 = st.columns(2)
     with col_f1:
         target_grade = st.selectbox(
@@ -546,12 +476,12 @@ def render_bulk_notification_section():
     filter_grade = None if target_grade == "جميع الصفوف" else target_grade
     filter_sec = None if target_sec == "جميع الفصول" else target_sec
     target_students_df = fetch_students(filter_grade, filter_sec)
-    
+
     st.markdown("---")
     st.subheader("📝 كتابة نص الرسالة الجماعية:")
-    
+
     default_msg_template = "نحيطكم علماً بضرورة متابعة مستوى الطالب والالتزام بالانضباط المدرسي والحضور في المواعيد المحددة. شاكرين حسن تعاونكم مع إدارة المدرسة."
-    
+
     bulk_message = st.text_area(
         "اكتب الرسالة النصية المراد إرسالها لكافة أولياء الأمور المستهدفين:",
         value=default_msg_template,
@@ -559,11 +489,11 @@ def render_bulk_notification_section():
         key="bulk_msg_area",
         placeholder="اكتب هنا نص الرسالة التي يرغب الوكيل أو المدير في إرسالها..."
     )
-    
+
     st.caption("💡 يمكنك استخدام الكلمات المفتاحية الاختيارية ليتم استبدالها تلقائياً عند الإرسال: {اسم_الطالب} ، {الصف} ، {الفصل}")
-    
+
     st.markdown("---")
-    
+
     if not target_students_df.empty:
         st.success(f"📊 عدد أولياء الأمور المستهدفين بالفلاتر المختارة: ({len(target_students_df)}) ولي أمر")
         
@@ -686,16 +616,15 @@ def render_bulk_notification_section():
     else:
         st.warning("⚠️ لا يوجد طلاب مطابقون للتصفية المختارة.")
 
-
-# ==========================================
-# 3. Sidebar Navigation & Login Handling
-# ==========================================
+### ==========================================
+### 3. Sidebar Navigation & Login Handling
+### ==========================================
 st.sidebar.title("📌 القائمة الرئيسية")
 page = st.sidebar.radio(
     "اختر الشاشة المطلوب الانتقال إليها:",
     [
-        "👨🏫 شاشة المعلم (رصد مخالفة)",
-        "👨💼 شاشة وكيل شؤون الطلاب",
+        "👨‍🏫 شاشة المعلم (رصد مخالفة)",
+        "👨‍💼 شاشة وكيل شؤون الطلاب",
         "📢 إرسال إشعارات جماعية",
         "🔍 البحث الشامل عن طالب",
         "⚙️ إدارة بيانات الطلاب",
@@ -705,14 +634,14 @@ page = st.sidebar.radio(
 st.sidebar.markdown("---")
 
 PROTECTED_PAGES = [
-    "👨💼 شاشة وكيل شؤون الطلاب",
+    "👨‍💼 شاشة وكيل شؤون الطلاب",
     "📢 إرسال إشعارات جماعية",
     "🔍 البحث الشامل عن طالب",
     "⚙️ إدارة بيانات الطلاب",
     "🖨️ طباعة وتصدير التقرير"
 ]
 
-# Global Sidebar Authentication Check for All Protected Pages
+### Global Sidebar Authentication Check for All Protected Pages
 if page in PROTECTED_PAGES:
     if not st.session_state.authenticated:
         st.sidebar.markdown("---")
@@ -730,10 +659,10 @@ if page in PROTECTED_PAGES:
             st.session_state.authenticated = False
             st.rerun()
 
-# ==========================================
-# PAGE 1: Teacher Screen
-# ==========================================
-if page == "👨🏫 شاشة المعلم (رصد مخالفة)":
+### ==========================================
+### PAGE 1: Teacher Screen
+### ==========================================
+if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
     st.subheader("📋 شاشة المعلم - رصد المخالفة السلوكية")
     st.info("💡 اختر الصف والفصل لتحديث قائمة الطلاب المنسدلة تلقائياً.")
 
@@ -784,9 +713,9 @@ if page == "👨🏫 شاشة المعلم (رصد مخالفة)":
             conn.close()
             st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل شؤون الطلاب!")
 
-# ==========================================
-# GLOBAL PROTECTED PAGES LOGIN ENFORCEMENT
-# ==========================================
+### ==========================================
+### GLOBAL PROTECTED PAGES LOGIN ENFORCEMENT
+### ==========================================
 elif page in PROTECTED_PAGES and not st.session_state.authenticated:
     st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة لتسجيل الدخول.")
     with st.form("global_main_login_form"):
@@ -800,17 +729,17 @@ elif page in PROTECTED_PAGES and not st.session_state.authenticated:
             else:
                 st.error("❌ كلمة المرور غير صحيحة!")
 
-# ==========================================
-# PAGE 2: Vice Principal Screen
-# ==========================================
-elif page == "👨💼 شاشة وكيل شؤون الطلاب":
-    st.subheader("👨💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
-    
+### ==========================================
+### PAGE 2: Vice Principal Screen
+### ==========================================
+elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
+    st.subheader("👨‍💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
+
     init_db()
     conn = get_connection()
     incidents_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
     conn.close()
-    
+
     if incidents_df.empty:
         st.info("لا توجد مخالفات سلوكية مرصودة حالياً في قاعدة البيانات.")
     else:
@@ -863,8 +792,9 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                         st.markdown("---")
                         col_p_wa, col_p_del = st.columns([2, 1])
                         with col_p_wa:
+                            # التعبئة التلقائية لرقم ولي الأمر من قاعدة البيانات
                             st_phone_p = get_student_phone(row['student_id'])
-                            p_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر:", value=st_phone_p, placeholder="05XXXXXXXX", key=f"wa_p_phone_{row['id']}")
+                            p_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر (تعبئة تلقائية):", value=st_phone_p, placeholder="05XXXXXXXX", key=f"wa_p_phone_{row['id']}")
                             p_wa_url = generate_whatsapp_link(p_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
                             st.link_button(f"📲 إرسال بلاغ #{row['id']} عبر الواتساب", p_wa_url, use_container_width=True)
                         with col_p_del:
@@ -878,7 +808,6 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                                 conn.close()
                                 st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح!")
                                 st.rerun()
-
 
         with tab2:
             if processed_df.empty:
@@ -894,8 +823,9 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                         st.markdown("---")
                         col_pr_wa, col_pr_del = st.columns([2, 1])
                         with col_pr_wa:
+                            # التعبئة التلقائية لرقم ولي الأمر من قاعدة البيانات
                             st_phone_pr = get_student_phone(row['student_id'])
-                            pr_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر:", value=st_phone_pr, placeholder="05XXXXXXXX", key=f"wa_pr_phone_{row['id']}")
+                            pr_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر (تعبئة تلقائية):", value=st_phone_pr, placeholder="05XXXXXXXX", key=f"wa_pr_phone_{row['id']}")
                             pr_wa_url = generate_whatsapp_link(pr_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
                             st.link_button(f"📲 إرسال التقرير #{row['id']} عبر الواتساب", pr_wa_url, use_container_width=True)
                         with col_pr_del:
@@ -910,22 +840,18 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                                 st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح!")
                                 st.rerun()
 
-
-
-
         with tab3:
             render_bulk_notification_section()
 
-# ==========================================
-# PAGE 2.5: Bulk Notifications Screen
-# ==========================================
+### ==========================================
+### PAGE 2.5: Bulk Notifications Screen
+### ==========================================
 elif page == "📢 إرسال إشعارات جماعية":
     render_bulk_notification_section()
 
-
-# ==========================================
-# PAGE 3: Student Search
-# ==========================================
+### ==========================================
+### PAGE 3: Student Search
+### ==========================================
 elif page == "🔍 البحث الشامل عن طالب":
     st.subheader("🔍 البحث الشامل عن سجل طالب سلوكي")
     search_query = st.text_input("أدخل اسم الطالب أو رقم هويته للبحث في القاعدة:")
@@ -956,15 +882,15 @@ elif page == "🔍 البحث الشامل عن طالب":
                     st.dataframe(inc_df[['id', 'teacher_name', 'period', 'incident_degree', 'incident_type', 'action_taken', 'status', 'created_at']], use_container_width=True)
         conn.close()
 
-# ==========================================
-# PAGE 4: Student Management
-# ==========================================
+### ==========================================
+### PAGE 4: Student Management
+### ==========================================
 elif page == "⚙️ إدارة بيانات الطلاب":
     st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - حذف - نقل)")
     m_tab0, m_tab1, m_tab2, m_tab3 = st.tabs([
-        "📜 عرض قوائم الطلاب والتوزيع", 
-        "➕ إضافة طالب جديد", 
-        "❌ حذف طالب", 
+        "📜 عرض قوائم الطلاب والتوزيع",
+        "➕ إضافة طالب جديد",
+        "❌ حذف طالب",
         "🔄 نقل طالب من فصل لآخر"
     ])
 
@@ -1000,6 +926,7 @@ elif page == "⚙️ إدارة بيانات الطلاب":
             new_name = st.text_input("اسم الطالب الرباعي:")
             new_grade = st.selectbox("الصف الدراسي:", ["الصف الأول المتوسط", "الصف الثاني المتوسط", "الصف الثالث المتوسط"], key="add_g")
             new_section = st.selectbox("الفصل (الشعبة):", ["فصل 1", "فصل 2", "فصل 3"], key="add_s")
+            new_phone = st.text_input("رقم جوال ولي الأمر (مثال: 9665XXXXXXXX):", key="add_p")
             
             btn_add = st.form_submit_button("حفظ الطالب الجديد")
             if btn_add:
@@ -1009,7 +936,7 @@ elif page == "⚙️ إدارة بيانات الطلاب":
                     conn = get_connection()
                     c = conn.cursor()
                     try:
-                        c.execute("INSERT INTO students (id, name, grade, section) VALUES (?, ?, ?, ?)", (new_id.strip(), new_name.strip(), new_grade, new_section))
+                        c.execute("INSERT INTO students (id, name, grade, section, phone) VALUES (?, ?, ?, ?, ?)", (new_id.strip(), new_name.strip(), new_grade, new_section, new_phone.strip()))
                         conn.commit()
                         st.success(f"تمت إضافة الطالب ({new_name}) بنجاح!")
                     except sqlite3.IntegrityError:
@@ -1059,9 +986,9 @@ elif page == "⚙️ إدارة بيانات الطلاب":
         else:
             st.info("لا يوجد طلاب لنقلهم.")
 
-# ==========================================
-# PAGE 5: Printing & Exporting Reports (FIXED & FULLY FUNCTIONAL)
-# ==========================================
+### ==========================================
+### PAGE 5: Printing & Exporting Reports
+### ==========================================
 elif page == "🖨️ طباعة وتصدير التقرير":
     st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
 
@@ -1109,8 +1036,9 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             )
             
         with col_wa:
+            # التعبئة التلقائية لرقم جوال ولي الأمر المعتمد من قاعدة البيانات
             st_parent_phone = get_student_phone(rep_data['student_id'])
-            phone_input = st.text_input("📲 رقم جوال ولي الأمر لإرسال التقرير عبر الواتساب:", value=st_parent_phone, placeholder="05XXXXXXXX", key=f"phone_rep_{selected_id}")
+            phone_input = st.text_input("📲 رقم جوال ولي الأمر لإرسال التقرير عبر الواتساب (تعبئة تلقائية):", value=st_parent_phone, placeholder="05XXXXXXXX", key=f"phone_rep_{selected_id}")
             wa_url = generate_whatsapp_link(
                 phone_input, 
                 rep_data['id'], 
@@ -1127,107 +1055,60 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             )
             st.link_button("📲 إرسال التقرير عبر الواتساب (WhatsApp)", wa_url, use_container_width=True)
         
-        # Formatted Official Report Template (Flush-Left HTML to Prevent Markdown Code Blocks)
+        # Formatted Official Report Template
         action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة'
         notes_str = rep_data['vice_notes'] if rep_data['vice_notes'] else 'لا توجد ملاحظات إضافية'
 
         report_html = f"""
-<div class="print-report">
-<div style="text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 20px;">
-<h3 style="margin:0; color:#1e3c72; font-size: 19px;">المملكة العربية السعودية - وزارة التعليم</h3>
-<h4 style="margin:5px 0; color:#333; font-size: 15px;">الإدارة العامة للتعليم بمنطقة الرياض</h4>
-<h4 style="margin:5px 0; color:#333; font-size: 15px;">متوسطة الثغر النموذجية الأهلية - بنين</h4>
-<hr style="border: 1px solid #1e3c72; margin: 15px 0;">
-<h2 style="color:#1e3c72; font-size: 18px; font-weight: 800; margin:10px 0;">
-تقرير تدوين ومعالجة المخالفات السلوكية والتعليمية والانضباط المدرسي
-</h2>
-</div>
-
-<div class="table-container">
-<table style="width:100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;" border="1" cellpadding="8">
-<tr style="background-color: #f2f5f9;">
-<th style="width: 20%;">رقم التقرير:</th>
-<td style="width: 30%;">{rep_data['id']}</td>
-<th style="width: 20%;">تاريخ الرصد:</th>
-<td style="width: 30%;">{rep_data['created_at']}</td>
-</tr>
-<tr>
-<th>اسم الطالب:</th>
-<td><b>{rep_data['student_name']}</b></td>
-<th>رقم الطالب / الهوية:</th>
-<td>{rep_data['student_id']}</td>
-</tr>
-<tr style="background-color: #f2f5f9;">
-<th>الصف الدراسي:</th>
-<td>{rep_data['grade']}</td>
-<th>الفصل (الشعبة):</th>
-<td>{rep_data['section']}</td>
-</tr>
-<tr>
-<th>المعلم الراصد:</th>
-<td>{rep_data['teacher_name']}</td>
-<th>الحصة الدراسية:</th>
-<td>{rep_data['period']}</td>
-</tr>
-<tr style="background-color: #f2f5f9;">
-<th>درجة المشكلة:</th>
-<td colspan="3"><b style="color: #c0392b;">{rep_data['incident_degree']}</b></td>
-</tr>
-<tr>
-<th>المشكلة السلوكية:</th>
-<td colspan="3">{rep_data['incident_type']}</td>
-</tr>
-<tr style="background-color: #f2f5f9;">
-<th>وصف المعلم للمشكلة:</th>
-<td colspan="3">{rep_data['description']}</td>
-</tr>
-<tr>
-<th>الإجراء المتخذ (الوكيل):</th>
-<td colspan="3"><b style="color: #27ae60;">{action_str}</b></td>
-</tr>
-<tr style="background-color: #f2f5f9;">
-<th>ملاحظات الوكيل:</th>
-<td colspan="3">{notes_str}</td>
-</tr>
-</table>
-</div>
-
-<div style="margin-top: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background-color: #fafafa;">
-<h4 style="margin-top:0; color:#1e3c72; text-align: center;">الاعتمادات والتوقيعات الرسمية</h4>
-<div class="signatures-grid">
-<div class="sig-col">
-<p style="font-weight: bold; margin-bottom: 5px;">المعلم الراصد</p>
-<p style="margin: 0; color: #555;">{rep_data['teacher_name']}</p>
-<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-</div>
-<div class="sig-col">
-<p style="font-weight: bold; margin-bottom: 5px;">الطالب المخالف</p>
-<p style="margin: 0; color: #555;">{rep_data['student_name']}</p>
-<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-</div>
-<div class="sig-col">
-<p style="font-weight: bold; margin-bottom: 5px;">وكيل شؤون الطلاب</p>
-<p style="margin: 0; color: #555;">صالح بن عبدالله الدعجاني</p>
-<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-</div>
-<div class="sig-col">
-<p style="font-weight: bold; margin-bottom: 5px;">مدير المدرسة</p>
-<p style="margin: 0; color: #555;">إبراهيم بن موسى التميمي</p>
-<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-</div>
-</div>
-</div>
-
-<div style="text-align: center; margin-top: 25px; padding-top: 12px; border-top: 1px dashed #bbb; font-size: 13px; color: #555;">
-<b>تصميم وتطوير المعلم / محمد سامي السعيد</b>
-</div>
-</div>
-"""
+        <div style="direction: rtl; text-align: right; border: 2px solid #1e3c72; padding: 25px; border-radius: 12px; font-family: 'Tajawal', sans-serif; background-color: #ffffff; color: #222;">
+            <div style="text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: #1e3c72; margin: 0;">متوسطة الثغر النموذجية الأهلية</h2>
+                <h3 style="color: #555; margin: 5px 0 0 0;">تقرير مخالفة سلوكية إداري رقم #{rep_data['id']}</h3>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr>
+                    <td style="padding: 8px; font-weight: bold; width: 20%;">اسم الطالب:</td>
+                    <td style="padding: 8px;">{rep_data['student_name']}</td>
+                    <td style="padding: 8px; font-weight: bold; width: 20%;">رقم الهوية/الطالب:</td>
+                    <td style="padding: 8px;">{rep_data['student_id']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; font-weight: bold;">الصف والفصل:</td>
+                    <td style="padding: 8px;">{rep_data['grade']} - {rep_data['section']}</td>
+                    <td style="padding: 8px; font-weight: bold;">الحصة:</td>
+                    <td style="padding: 8px;">{rep_data['period']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; font-weight: bold;">المعلم الراصد:</td>
+                    <td style="padding: 8px;">{rep_data['teacher_name']}</td>
+                    <td style="padding: 8px; font-weight: bold;">تاريخ الرصد:</td>
+                    <td style="padding: 8px;">{rep_data['created_at']}</td>
+                </tr>
+            </table>
+            <hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 5px 0;"><strong>درجة المخالفة:</strong> {rep_data['incident_degree']}</p>
+                <p style="margin: 5px 0;"><strong>نوع المخالفة:</strong> {rep_data['incident_type']}</p>
+                <p style="margin: 5px 0;"><strong>وصف المشكلة:</strong> {rep_data['description']}</p>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 5px 0;"><strong>الإجراء المتخذ (الوكيل):</strong> {action_str}</p>
+                <p style="margin: 5px 0;"><strong>ملاحظات الوكيل:</strong> {notes_str}</p>
+            </div>
+            <div style="margin-top: 30px; display: flex; justify-content: space-between; text-align: center;">
+                <div><p><strong>المعلم الراصد</strong></p><p>{rep_data['teacher_name']}</p></div>
+                <div><p><strong>وكيل شؤون الطلاب</strong></p><p>........................</p></div>
+                <div><p><strong>مدير المدرسة</strong></p><p>........................</p></div>
+            </div>
+        </div>
+        """
         st.markdown(report_html, unsafe_allow_html=True)
 
-# Footer Credits at bottom of main application page
+### Footer Credits at bottom of main application page
 st.markdown("""
-<div class="footer-credits">
-💻 تصميم وتطوير المعلم / محمد سامي السعيد
+<hr style="margin-top: 40px;">
+<div style="text-align: center; color: #777; font-size: 13px; padding: 10px;">
+    نظام تدوين المخالفات السلوكية والتعبئة التلقائية © متوسطة الثغر النموذجية الأهلية
 </div>
 """, unsafe_allow_html=True)
