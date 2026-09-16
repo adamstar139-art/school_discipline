@@ -10,6 +10,12 @@ import streamlit.components.v1 as components
 
 DEFAULT_STUDENT_PHONES_MAP = {}
 
+def render_clean_html(html_str):
+    """إزالة المسافات البادئة والأسطر الفارغة لتفادي تحويل Streamlit لـ HTML إلى كتل كود"""
+    clean = "\n".join([line.strip() for line in html_str.splitlines() if line.strip()])
+    st.markdown(clean, unsafe_allow_html=True)
+
+
 ##### ==========================================
 ##### 1. Page Configuration & Custom Styling (RTL & Clean Print)
 ##### ==========================================
@@ -907,7 +913,7 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
                             </div>
                         </div>
                         """
-                        st.markdown(card_html, unsafe_allow_html=True)
+                        render_clean_html(card_html)
                         
                         st.subheader("⚖️ اتخاذ الإجراء النظامي بحسب قواعد السلوك والمواظبة:")
                         
@@ -1029,7 +1035,7 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
                             </div>
                         </div>
                         """
-                        st.markdown(card_html, unsafe_allow_html=True)
+                        render_clean_html(card_html)
                         
                         st.markdown("#### 📱 التواصل مع ولي الأمر عبر الواتساب:")
                         
@@ -1423,4 +1429,4 @@ elif page == "🖨️ طباعة وتصدير التقرير":
 
         </div>
         """
-        st.markdown(textwrap.dedent(report_html), unsafe_allow_html=True)
+        render_clean_html(report_html)
