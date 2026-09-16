@@ -1312,7 +1312,7 @@ elif page == "⚙️ إدارة بيانات الطلاب":
 ### ==========================================
 elif page == "🖨️ طباعة وتصدير التقرير":
     st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
-
+    
     conn = get_connection()
     inc_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
     conn.close()
@@ -1323,15 +1323,15 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         report_options = [f"تقرير #{r['id']} - الطالب: {r['student_name']} - تاريخ: {r['created_at']}" for _, r in inc_df.iterrows()]
         selected_rep = st.selectbox("اختر التقرير المراد معاينته وطباعته:", report_options)
         
-        selected_id = int(selected_rep.split("#")[1].split(" -")[0])
+        selected_id = int(selected_rep.split("#")[1].split(" -"))
         conn = get_connection()
-        rep_data = pd.read_sql_query("SELECT * FROM incidents WHERE id = ?", conn, params=[selected_id]).iloc[0]
+        rep_data = pd.read_sql_query("SELECT * FROM incidents WHERE id = ?", conn, params=[selected_id]).iloc
         conn.close()
         
         st.markdown("---")
         
         # Interactive Direct Print Button & WhatsApp Share Section
-        col_print, col_wa = st.columns([1, 1])
+        col_print, col_wa = st.columns([1])
         
         with col_print:
             components.html(
@@ -1371,7 +1371,7 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             
             actual_phone_rep = phone_input.strip() if phone_input and phone_input.strip() else st_parent_phone
             
-            col_rep_wa_btn, col_rep_save_btn = st.columns([1, 1])
+            col_rep_wa_btn, col_rep_save_btn = st.columns([1])
             with col_rep_wa_btn:
                 wa_url = generate_whatsapp_link(
                     actual_phone_rep, 
@@ -1394,12 +1394,25 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                         st.session_state[phone_rep_key] = actual_phone_rep
                         st.success("✅ تم تحديث رقم ولي الأمر في قاعدة البيانات بنجاح!")
                         st.rerun()
-        
+    
         # Formatted Official Report Template for A4 Print (Without Main Header Banner, Single A4 Page)
         action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة والإجراء النظامي'
         notes_str = rep_data['vice_notes'] if rep_data['vice_notes'] else 'لا توجد ملاحظات إضافية'
 
         report_html = f"""
+        <style>
+        @media print {{
+            [data-testid="stSidebar"], header, footer, .stButton, .stSelectbox, .stTextInput, iframe, hr {{
+                display: none !important;
+            }}
+            .a4-print-report {{
+                border: 2px solid #1e3c72 !important;
+                box-shadow: none !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+            }}
+        }}
+        </style>
         <div class="a4-print-report" style="direction: rtl; text-align: right; border: 2px solid #1e3c72; padding: 20px 25px; border-radius: 12px; font-family: 'Tajawal', sans-serif; background-color: #ffffff; color: #111; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); page-break-inside: avoid;">
             
             <!-- Official Ministry & School Header Grid -->
@@ -1495,12 +1508,6 @@ elif page == "🖨️ طباعة وتصدير التقرير":
 
         </div>
         """
-        st.markdown(report_html, unsafe_allow_html=True)
+        st.markdown(textwrap.dedent(report_html), unsafe_allow_html=True)
 
-### Footer Credits
-st.markdown("""
-<hr class="no-print" style="margin-top: 40px; border: 0; border-top: 1px solid #ddd;">
-<div class="no-print" style="text-align: center; color: #777; font-size: 13px; padding-bottom: 10px;">
-    نظام الانضباط المدرسي © 2026 - متوسطة الثغر النموذجية الأهلية
-</div>
-""", unsafe_allow_html=True)
+
