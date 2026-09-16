@@ -579,6 +579,73 @@ def render_bulk_notification_section():
             if cp:
                 formatted_phones.append(cp)
                 
+        # Mass Send Action Buttons Section
+        target_wa_items = []
+        for idx, st_row in target_students_df.iterrows():
+            p_num = st_row['phone'] if st_row['phone'] else ''
+            st_name = st_row['name']
+            st_gr = st_row['grade']
+            st_sec = st_row['section']
+            
+            clean_p = str(p_num).strip().replace("+", "").replace(" ", "").replace("-", "")
+            if clean_p.startswith("05"):
+                clean_p = "966" + clean_p[1:]
+            elif not clean_p.startswith("966") and len(clean_p) == 9 and clean_p.startswith("5"):
+                clean_p = "966" + clean_p
+                
+            customized_msg = bulk_message.replace("{اسم_الطالب}", st_name).replace("{الصف}", st_gr).replace("{الفصل}", st_sec)
+            encoded_bulk = urllib.parse.quote(customized_msg)
+            
+            if clean_p and len(clean_p) >= 9:
+                target_wa_items.append({"name": st_name, "phone": clean_p, "url": f"https://wa.me/{clean_p}?text={encoded_bulk}"})
+
+        encoded_general_msg = urllib.parse.quote(bulk_message.replace("{اسم_الطالب}", "الطالب").replace("{الصف}", target_grade).replace("{الفصل}", target_sec))
+        wa_general_broadcast_url = f"https://wa.me/?text={encoded_general_msg}"
+        
+        col_btn_m1, col_btn_m2 = st.columns([1, 1])
+        with col_btn_m1:
+            st.link_button("📲 📢 إرسال لمجموعة بث عامة (WhatsApp Broadcast)", wa_general_broadcast_url, use_container_width=True)
+            
+        with col_btn_m2:
+            import json
+            js_json = json.dumps(target_wa_items, ensure_ascii=False)
+            js_script = f"""
+            <div style="direction: rtl; text-align: center;">
+                <button onclick="launchBatchWhatsApp()" style="
+                    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+                    color: white;
+                    padding: 12px 24px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    width: 100%;
+                    box-shadow: 0 4px 10px rgba(37,211,102,0.3);
+                    transition: 0.3s;">
+                    🚀 📲 إرسال الإشعار الجماعي لكافة أولياء الأمور دفعة واحدة (فتح تلقائي)
+                </button>
+            </div>
+            <script>
+            function launchBatchWhatsApp() {{
+                const items = {js_json};
+                if (!items || items.length === 0) {{
+                    alert("لا توجد أرقام هواتف متاحة للإرسال.");
+                    return;
+                }}
+                alert("سيتم فتح المحادثات لجميع أولياء الأمور المشمولين (عدد " + items.length + " ولي أمر) بالتتابع.");
+                let delay = 0;
+                items.forEach((item) => {{
+                    setTimeout(() => {{
+                        window.open(item.url, '_blank');
+                    }}, delay);
+                    delay += 500;
+                }});
+            }}
+            </script>
+            """
+            components.html(js_script, height=65)
+
         phones_comma_str = ", ".join(formatted_phones)
         phones_line_str = "\n".join(formatted_phones)
         
@@ -637,19 +704,27 @@ page = st.sidebar.radio(
 )
 st.sidebar.markdown("---")
 
-# Login Handling for Vice Principal Screen
-if page in ["👨💼 شاشة وكيل شؤون الطلاب", "📢 إرسال إشعارات جماعية"]:
+PROTECTED_PAGES = [
+    "👨💼 شاشة وكيل شؤون الطلاب",
+    "📢 إرسال إشعارات جماعية",
+    "🔍 البحث الشامل عن طالب",
+    "⚙️ إدارة بيانات الطلاب",
+    "🖨️ طباعة وتصدير التقرير"
+]
+
+# Global Sidebar Authentication Check for All Protected Pages
+if page in PROTECTED_PAGES:
     if not st.session_state.authenticated:
         st.sidebar.markdown("---")
-        st.sidebar.subheader("🔒 دخول وكيل المدرسة")
-        password_input = st.sidebar.text_input("كلمة المرور (9009):", type="password", key="pwd_input_side")
+        st.sidebar.subheader("🔒 تسجيل الدخول")
+        password_input = st.sidebar.text_input("أدخل كلمة المرور:", type="password", key="pwd_input_side")
         if st.sidebar.button("تسجيل الدخول", key="btn_login_side"):
             if password_input == "9009":
                 st.session_state.authenticated = True
                 st.sidebar.success("تم تسجيل الدخول بنجاح!")
                 st.rerun()
             else:
-                st.sidebar.error("كلمة المرور غير صحيحة!")
+                st.sidebar.error("❌ كلمة المرور غير صحيحة!")
     else:
         if st.sidebar.button("🔒 تسجيل الخروج", key="logout_btn"):
             st.session_state.authenticated = False
@@ -710,152 +785,142 @@ if page == "👨🏫 شاشة المعلم (رصد مخالفة)":
             st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل شؤون الطلاب!")
 
 # ==========================================
-# PAGE 2: Vice Principal Screen (WITH PASSWORD & DELETE INCIDENT ICON)
+# GLOBAL PROTECTED PAGES LOGIN ENFORCEMENT
+# ==========================================
+elif page in PROTECTED_PAGES and not st.session_state.authenticated:
+    st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة لتسجيل الدخول.")
+    with st.form("global_main_login_form"):
+        pwd_main = st.text_input("أدخل كلمة المرور:", type="password", key="main_pwd_input_global")
+        btn_login_main = st.form_submit_button("🔓 تسجيل الدخول للشاشة")
+        if btn_login_main:
+            if pwd_main == "9009":
+                st.session_state.authenticated = True
+                st.success("تم تسجيل الدخول بنجاح!")
+                st.rerun()
+            else:
+                st.error("❌ كلمة المرور غير صحيحة!")
+
+# ==========================================
+# PAGE 2: Vice Principal Screen
 # ==========================================
 elif page == "👨💼 شاشة وكيل شؤون الطلاب":
-    if not st.session_state.authenticated:
-        st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة لتسجيل الدخول.")
-        with st.form("main_login_form"):
-            pwd_main = st.text_input("أدخل كلمة مرور وكيل شؤون الطلاب:", type="password", key="main_pwd_input")
-            btn_login_main = st.form_submit_button("🔓 تسجيل الدخول للشاشة")
-            if btn_login_main:
-                if pwd_main == "9009":
-                    st.session_state.authenticated = True
-                    st.success("تم تسجيل الدخول بنجاح!")
-                    st.rerun()
-                else:
-                    st.error("❌ كلمة المرور غير صحيحة (رمز الدخول الصحيح هو 9009).")
+    st.subheader("👨💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
+    
+    init_db()
+    conn = get_connection()
+    incidents_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
+    conn.close()
+    
+    if incidents_df.empty:
+        st.info("لا توجد مخالفات سلوكية مرصودة حالياً في قاعدة البيانات.")
     else:
-        st.subheader("👨💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
+        pending_df = incidents_df[incidents_df['status'] == 'معلقة (بانتظار الإجراء)']
+        processed_df = incidents_df[incidents_df['status'] != 'معلقة (بانتظار الإجراء)']
         
-        init_db()
-        conn = get_connection()
-        incidents_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
-        conn.close()
+        tab1, tab2, tab3 = st.tabs([f"📥 البلاغات الواردة الجديدة ({len(pending_df)})", f"✅ البلاغات المعالجة والمكتملة ({len(processed_df)})", "📢 إرسال إشعارات جماعية"])
         
-        if incidents_df.empty:
-            st.info("لا توجد مخالفات سلوكية مرصودة حالياً في قاعدة البيانات.")
-        else:
-            pending_df = incidents_df[incidents_df['status'] == 'معلقة (بانتظار الإجراء)']
-            processed_df = incidents_df[incidents_df['status'] != 'معلقة (بانتظار الإجراء)']
-            
-            tab1, tab2, tab3 = st.tabs([f"📥 البلاغات الواردة الجديدة ({len(pending_df)})", f"✅ البلاغات المعالجة والمكتملة ({len(processed_df)})", "📢 إرسال إشعارات جماعية"])
-            
-            with tab1:
-                if pending_df.empty:
-                    st.success("لا توجد بلاغات معلقة جديدة.")
-                else:
-                    for _, row in pending_df.iterrows():
-                        with st.expander(f"🚨 بلاغ رقم #{row['id']} - الطالب: {row['student_name']} ({row['grade']} - {row['section']})"):
-                            col_a, col_b = st.columns(2)
-                            with col_a:
-                                st.write(f"**المعلم الراصد:** {row['teacher_name']}")
-                                st.write(f"**الصف والفصل:** {row['grade']} - {row['section']}")
-                                st.write(f"**الحصة:** {row['period']}")
-                                st.write(f"**تاريخ الرصد:** {row['created_at']}")
-                            with col_b:
-                                st.write(f"**درجة المخالفة:** {row['incident_degree']}")
-                                st.write(f"**نوع المخالفة:** {row['incident_type']}")
-                                st.write(f"**وصف المعلم للمشكلة:** {row['description']}")
+        with tab1:
+            if pending_df.empty:
+                st.success("لا توجد بلاغات معلقة جديدة.")
+            else:
+                for _, row in pending_df.iterrows():
+                    with st.expander(f"🚨 بلاغ رقم #{row['id']} - الطالب: {row['student_name']} ({row['grade']} - {row['section']})"):
+                        col_a, col_b = st.columns(2)
+                        with col_a:
+                            st.write(f"**المعلم الراصد:** {row['teacher_name']}")
+                            st.write(f"**الصف والفصل:** {row['grade']} - {row['section']}")
+                            st.write(f"**الحصة:** {row['period']}")
+                            st.write(f"**تاريخ الرصد:** {row['created_at']}")
+                        with col_b:
+                            st.write(f"**درجة المخالفة:** {row['incident_degree']}")
+                            st.write(f"**نوع المخالفة:** {row['incident_type']}")
+                            st.write(f"**وصف المعلم للمشكلة:** {row['description']}")
+                        
+                        st.markdown("---")
+                        st.subheader("⚖️ اتخاذ الإجراء النظامي بحسب قواعد السلوك والمواظبة:")
+                        
+                        deg = row['incident_degree']
+                        procedures_list = PROCEDURES_BY_DEGREE.get(deg, ["تنبيه شفهي", "تعهد خطي", "إشعار ولي الأمر"])
+                        
+                        with st.form(f"process_form_{row['id']}"):
+                            selected_proc = st.selectbox("اختر الإجراء المطلوب اتخاذه:", procedures_list, key=f"proc_{row['id']}")
+                            vice_notes = st.text_area("تدوين ملاحظات وتوجيهات الوكيل:", placeholder="يكتب الوكيل هنا توجيهاته وملاحظاته...", key=f"notes_{row['id']}")
                             
-                            st.markdown("---")
-                            st.subheader("⚖️ اتخاذ الإجراء النظامي بحسب قواعد السلوك والمواظبة:")
-                            
-                            deg = row['incident_degree']
-                            procedures_list = PROCEDURES_BY_DEGREE.get(deg, ["تنبيه شفهي", "تعهد خطي", "إشعار ولي الأمر"])
-                            
-                            with st.form(f"process_form_{row['id']}"):
-                                selected_proc = st.selectbox("اختر الإجراء المطلوب اتخاذه:", procedures_list, key=f"proc_{row['id']}")
-                                vice_notes = st.text_area("تدوين ملاحظات وتوجيهات الوكيل:", placeholder="يكتب الوكيل هنا توجيهاته وملاحظاته...", key=f"notes_{row['id']}")
-                                
-                                btn_proc = st.form_submit_button("حفظ وتأكيد الإجراء")
-                                if btn_proc:
-                                    conn = get_connection()
-                                    c = conn.cursor()
-                                    c.execute('''
-                                    UPDATE incidents 
-                                    SET action_taken = ?, vice_notes = ?, status = 'تم اتخاذ الإجراء', updated_at = CURRENT_TIMESTAMP
-                                    WHERE id = ?
-                                    ''', (selected_proc, vice_notes, row['id']))
-                                    conn.commit()
-                                    conn.close()
-                                    st.success("تم اعتماد الإجراء بنجاح وتحديث حالة التقرير!")
-                                    st.rerun()
-                            
-                            st.markdown("---")
-                            col_p_wa, col_p_del = st.columns([2, 1])
-                            with col_p_wa:
-                                st_phone_p = get_student_phone(row['student_id'])
-                                p_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر:", value=st_phone_p, placeholder="05XXXXXXXX", key=f"wa_p_phone_{row['id']}")
-                                p_wa_url = generate_whatsapp_link(p_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
-                                st.link_button(f"📲 إرسال بلاغ #{row['id']} عبر الواتساب", p_wa_url, use_container_width=True)
-                            with col_p_del:
-                                st.write("")
-                                st.write("")
-                                if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_pending_{row['id']}"):
-                                    conn = get_connection()
-                                    c = conn.cursor()
-                                    c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
-                                    conn.commit()
-                                    conn.close()
-                                    st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح!")
-                                    st.rerun()
+                            btn_proc = st.form_submit_button("حفظ وتأكيد الإجراء")
+                            if btn_proc:
+                                conn = get_connection()
+                                c = conn.cursor()
+                                c.execute('''
+                                UPDATE incidents 
+                                SET action_taken = ?, vice_notes = ?, status = 'تم اتخاذ الإجراء', updated_at = CURRENT_TIMESTAMP
+                                WHERE id = ?
+                                ''', (selected_proc, vice_notes, row['id']))
+                                conn.commit()
+                                conn.close()
+                                st.success("تم اعتماد الإجراء بنجاح وتحديث حالة التقرير!")
+                                st.rerun()
+                        
+                        st.markdown("---")
+                        col_p_wa, col_p_del = st.columns([2, 1])
+                        with col_p_wa:
+                            st_phone_p = get_student_phone(row['student_id'])
+                            p_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر:", value=st_phone_p, placeholder="05XXXXXXXX", key=f"wa_p_phone_{row['id']}")
+                            p_wa_url = generate_whatsapp_link(p_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
+                            st.link_button(f"📲 إرسال بلاغ #{row['id']} عبر الواتساب", p_wa_url, use_container_width=True)
+                        with col_p_del:
+                            st.write("")
+                            st.write("")
+                            if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_pending_{row['id']}"):
+                                conn = get_connection()
+                                c = conn.cursor()
+                                c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
+                                conn.commit()
+                                conn.close()
+                                st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح!")
+                                st.rerun()
 
 
-            with tab2:
-                if processed_df.empty:
-                    st.info("لا توجد بلاغات معالجة حتى الآن.")
-                else:
-                    for _, row in processed_df.iterrows():
-                        with st.expander(f"✅ بلاغ رقم #{row['id']} - الطالب: {row['student_name']} (تم اتخاذ الإجراء)"):
-                            st.write(f"**المعلم الراصد:** {row['teacher_name']} | **الحصة:** {row['period']}")
-                            st.write(f"**المخالفة:** {row['incident_degree']} - {row['incident_type']}")
-                            st.write(f"**الإجراء المتخذ:** {row['action_taken']}")
-                            st.write(f"**ملاحظات الوكيل:** {row['vice_notes']}")
-                            
-                            st.markdown("---")
-                            col_pr_wa, col_pr_del = st.columns([2, 1])
-                            with col_pr_wa:
-                                st_phone_pr = get_student_phone(row['student_id'])
-                                pr_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر:", value=st_phone_pr, placeholder="05XXXXXXXX", key=f"wa_pr_phone_{row['id']}")
-                                pr_wa_url = generate_whatsapp_link(pr_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
-                                st.link_button(f"📲 إرسال التقرير #{row['id']} عبر الواتساب", pr_wa_url, use_container_width=True)
-                            with col_pr_del:
-                                st.write("")
-                                st.write("")
-                                if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_proc_{row['id']}"):
-                                    conn = get_connection()
-                                    c = conn.cursor()
-                                    c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
-                                    conn.commit()
-                                    conn.close()
-                                    st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح!")
-                                    st.rerun()
+        with tab2:
+            if processed_df.empty:
+                st.info("لا توجد بلاغات معالجة حتى الآن.")
+            else:
+                for _, row in processed_df.iterrows():
+                    with st.expander(f"✅ بلاغ رقم #{row['id']} - الطالب: {row['student_name']} (تم اتخاذ الإجراء)"):
+                        st.write(f"**المعلم الراصد:** {row['teacher_name']} | **الحصة:** {row['period']}")
+                        st.write(f"**المخالفة:** {row['incident_degree']} - {row['incident_type']}")
+                        st.write(f"**الإجراء المتخذ:** {row['action_taken']}")
+                        st.write(f"**ملاحظات الوكيل:** {row['vice_notes']}")
+                        
+                        st.markdown("---")
+                        col_pr_wa, col_pr_del = st.columns([2, 1])
+                        with col_pr_wa:
+                            st_phone_pr = get_student_phone(row['student_id'])
+                            pr_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر:", value=st_phone_pr, placeholder="05XXXXXXXX", key=f"wa_pr_phone_{row['id']}")
+                            pr_wa_url = generate_whatsapp_link(pr_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
+                            st.link_button(f"📲 إرسال التقرير #{row['id']} عبر الواتساب", pr_wa_url, use_container_width=True)
+                        with col_pr_del:
+                            st.write("")
+                            st.write("")
+                            if st.button(f"🗑️ حذف البلاغ #{row['id']}", key=f"del_proc_{row['id']}"):
+                                conn = get_connection()
+                                c = conn.cursor()
+                                c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
+                                conn.commit()
+                                conn.close()
+                                st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح!")
+                                st.rerun()
 
 
 
 
-            with tab3:
-                render_bulk_notification_section()
+        with tab3:
+            render_bulk_notification_section()
 
 # ==========================================
 # PAGE 2.5: Bulk Notifications Screen
 # ==========================================
 elif page == "📢 إرسال إشعارات جماعية":
-    if not st.session_state.authenticated:
-        st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة لتسجيل الدخول.")
-        with st.form("bulk_login_main_form"):
-            pwd_b = st.text_input("أدخل كلمة مرور الوكيل / المدير:", type="password", key="pwd_bulk_main")
-            btn_b = st.form_submit_button("🔓 تسجيل الدخول للشاشة")
-            if btn_b:
-                if pwd_b in ["9009", "5005"]:
-                    st.session_state.authenticated = True
-                    st.success("تم تسجيل الدخول بنجاح!")
-                    st.rerun()
-                else:
-                    st.error("❌ كلمة المرور غير صحيحة!")
-    else:
-        render_bulk_notification_section()
+    render_bulk_notification_section()
 
 
 # ==========================================
@@ -998,20 +1063,7 @@ elif page == "⚙️ إدارة بيانات الطلاب":
 # PAGE 5: Printing & Exporting Reports (FIXED & FULLY FUNCTIONAL)
 # ==========================================
 elif page == "🖨️ طباعة وتصدير التقرير":
-    if not st.session_state.print_authenticated:
-        st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة للوصول إلى طباعة التقارير.")
-        with st.form("print_main_login_form"):
-            pwd_print_main = st.text_input("أدخل كلمة مرور صفحة طباعة التقارير (5005):", type="password", key="print_main_pwd_input")
-            btn_login_print_main = st.form_submit_button("🔓 دخول لصفحة الطباعة")
-            if btn_login_print_main:
-                if pwd_print_main == "5005":
-                    st.session_state.print_authenticated = True
-                    st.success("تم تسجيل الدخول بنجاح!")
-                    st.rerun()
-                else:
-                    st.error("❌ كلمة المرور غير صحيحة (رمز الدخول الصحيح هو 5005).")
-    else:
-        st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
+    st.subheader("🖨️ طباعة التقرير الرسمي للمخالفة السلوكية")
 
     conn = get_connection()
     inc_df = pd.read_sql_query("SELECT * FROM incidents ORDER BY id DESC", conn)
