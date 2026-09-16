@@ -470,8 +470,7 @@ st.markdown("""
 st.sidebar.title("📌 القائمة الرئيسية")
 page = st.sidebar.radio(
     "اختر الشاشة المطلوب الانتقال إليها:",
-    ["👨‍🏫 شاشة المعلم (رصد مخالفة)", "👨‍💼 شاشة وكيل الشؤون المدرسية", "🔍 البحث الشامل عن طالب", "⚙️ إدارة بيانات الطلاب", "🖨️ طباعة وتصدير التقرير"]
-)
+ ["👨‍🏫 شاشة المعلم (رصد مخالفة)", "👨‍💼 شاشة وكيل شؤون الطلاب", "🔍 البحث الشامل عن طالب", "⚙️ إدارة بيانات الطلاب", "🖨️ طباعة وتصدير التقرير"])
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
@@ -482,7 +481,7 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 
 # Login handling for Vice Principal Screen ONLY
-if page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
+if page == "👨‍💼 شاشة وكيل شؤون الطلاب":
     if not st.session_state.authenticated:
         st.sidebar.markdown("---")
         st.sidebar.subheader("🔒 دخول وكيل المدرسة")
@@ -546,14 +545,14 @@ if page == "👨‍🏫 شاشة المعلم (رصد مخالفة)":
             ''', (selected_teacher, student_id, student_name, selected_grade, selected_section, selected_period, selected_degree, selected_violation, description.strip(), 'معلقة (بانتظار الإجراء)'))
             conn.commit()
             conn.close()
-            st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل الشؤون المدرسية!")
+            st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل شؤون الطلاب!")
 
 # PAGE 2: Vice Principal Screen
 elif page == "👨‍💼 شاشة وكيل الشؤون المدرسية":
     if not st.session_state.authenticated:
         st.warning("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور في الشريط الجانبي لتسجيل الدخول.")
     else:
-        st.subheader("👨‍💼 شاشة وكيل الشؤون المدرسية - معالجة البلاغات واتخاذ الإجراءات")
+        st.subheader("👨‍💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
         
         init_db()
         conn = get_connection()
