@@ -7,41 +7,119 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # ==========================================
-# 1. Page Configuration & Custom Styling
+# 1. Page Configuration & Custom Styling (RTL)
 # ==========================================
 st.set_page_config(
-    page_title="برنامج تدوين ومعالجة المخالفات السلوكية",
+    page_title="تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي - متوسطة الثغر النموذجية الأهلية",
     page_icon="🏫",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="expanded"
 )
 
+# Global RTL CSS & Responsive Layout
 st.markdown("""
 <style>
-    .main { direction: rtl; text-align: right; }
-    .stSelectbox, .stTextInput, .stTextArea { direction: rtl; text-align: right; }
-    .print-report {
-        background-color: #ffffff;
-        padding: 25px;
-        border-radius: 10px;
-        border: 2px solid #1e3c72;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        direction: rtl;
+    /* Global RTL Direction & Formatting */
+    html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stSidebar"], [data-testid="stHeader"] {
+        direction: rtl !important;
+        text-align: right !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    p, h1, h2, h3, h4, h5, h6, span, div, label, input, textarea, select, button, [data-baseweb="tab"] {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    .stSelectbox, .stTextInput, .stTextArea, .stButton, .stForm, [data-testid="stSidebarNav"] {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    .stDataFrame, .stTable {
+        direction: rtl !important;
+    }
+    div[role="radiogroup"] {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        direction: rtl !important;
+        justify-content: flex-start !important;
+    }
+
+    /* Header Banner Styling */
+    .header-banner {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 22px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: 2px solid #ffffff;
+    }
+    .header-banner h2 {
+        color: #ffffff !important;
+        font-size: 22px !important;
+        font-weight: 800 !important;
+        margin: 0 0 5px 0 !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    .header-banner h3 {
+        color: #f0f4f8 !important;
+        font-size: 17px !important;
+        margin: 0 0 8px 0 !important;
+    }
+    .header-banner h4 {
+        color: #ffd700 !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        margin: 8px 0 0 0 !important;
+    }
+
+    /* Print Template Container */
+    .print-report {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        border: 2px solid #1e3c72;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        direction: rtl !important;
+        text-align: right !important;
+        color: #2c3e50;
+    }
     .table-container table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .table-container th, .table-container td { border: 1px solid #ddd; padding: 10px; text-align: right; }
-    .table-container th { background-color: #f2f5f9; color: #1e3c72; }
-    .signatures-grid { display: flex; justify-content: space-between; margin-top: 30px; text-align: center; }
-    .sig-col { width: 22%; }
+    .table-container th, .table-container td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
+    .table-container th { background-color: #f1f5f9; color: #1e3c72; font-weight: bold; }
+    .signatures-grid { display: flex; justify-content: space-between; margin-top: 35px; text-align: center; }
+    .sig-col { width: 23%; }
     
+    .footer-credits {
+        text-align: center;
+        margin-top: 30px;
+        padding: 15px;
+        background-color: #f8fafc;
+        border-top: 2px solid #e2e8f0;
+        border-radius: 8px;
+        color: #1e3c72;
+        font-weight: bold;
+        font-size: 15px;
+    }
+
     @media print {
         body * { visibility: hidden; }
         .print-report, .print-report * { visibility: visible; }
-        .print-report { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+        .print-report { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
         .no-print { display: none !important; }
     }
 </style>
+""", unsafe_allow_html=True)
+
+# Main Top Header Banner
+st.markdown("""
+<div class="header-banner">
+    <h2>المملكة العربية السعودية - وزارة التعليم</h2>
+    <h3>الإدارة العامة للتعليم بمنطقة الرياض | متوسطة الثغر النموذجية الأهلية - بنين</h3>
+    <h4>تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي</h4>
+</div>
 """, unsafe_allow_html=True)
 
 # ==========================================
@@ -58,11 +136,10 @@ def get_connection():
         return sqlite3.connect(tmp_db)
 
 def init_db():
-    """Ensure all required tables exist and populate default teachers and 167 students unconditionally."""
+    """Ensure database tables exist and seed default teachers and 167 students."""
     conn = get_connection()
     c = conn.cursor()
 
-    # 1. Teachers Table
     c.execute('''
     CREATE TABLE IF NOT EXISTS teachers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,7 +147,6 @@ def init_db():
     )
     ''')
 
-    # 2. Students Table
     c.execute('''
     CREATE TABLE IF NOT EXISTS students (
         id TEXT PRIMARY KEY,
@@ -80,7 +156,6 @@ def init_db():
     )
     ''')
 
-    # 3. Incidents Table
     c.execute('''
     CREATE TABLE IF NOT EXISTS incidents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,7 +178,6 @@ def init_db():
 
     conn.commit()
 
-    # Default Teachers (13 Teachers)
     default_teachers = [
         "محمد سامي السعيد", "علي محمد معوض", "أحمد عبد الحميد سعيد",
         "محمد عبد المنعم أبو كيلة", "هيثم رضا عطية", "عماد الدين نصر كرم",
@@ -112,9 +186,8 @@ def init_db():
     ]
     c.executemany("INSERT OR IGNORE INTO teachers (name) VALUES (?)", [(t,) for t in default_teachers])
 
-    # Default Students (167 Students)
     default_students = [
-        # 1st Intermediate - Section 1 & 2
+        # 1st Intermediate
         ('1167628468', 'إبراهيم بن محمد بن علي الوهيبي', 'الصف الأول المتوسط', 'فصل 2'),
         ('1170348286', 'الوليد ابن خالد بن فهد العتيبي', 'الصف الأول المتوسط', 'فصل 2'),
         ('1172433185', 'باسل محمد فرج الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
@@ -155,9 +228,9 @@ def init_db():
         ('1170374993', 'مشاري عثمان سعد ناصر السعد', 'الصف الأول المتوسط', 'فصل 2'),
         ('2380890976', 'وائل - - بولعيش', 'الصف الأول المتوسط', 'فصل 1'),
         ('1170884165', 'يزن محمد علي اليحيى', 'الصف الأول المتوسط', 'فصل 2'),
-        ('1170548737', 'يوسف محمد عبدالله الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
+        ('1170582165_2', 'يوسف محمد عبدالله الدوسري', 'الصف الأول المتوسط', 'فصل 2'),
 
-        # 2nd Intermediate - Section 1, 2, 3
+        # 2nd Intermediate
         ('1166753291', 'ابراهيم بن مبارك بن راشد بن عبدالرحمن السبعان آل موينع', 'الصف الثاني المتوسط', 'فصل 2'),
         ('1163613795', 'ابراهيم ياسر ابراهيم الحلوى', 'الصف الثاني المتوسط', 'فصل 1'),
         ('1163760935', 'احمد سامي بن احمد العمران', 'الصف الثاني المتوسط', 'فصل 1'),
@@ -222,8 +295,8 @@ def init_db():
         ('1163191222', 'يزيد بن طارق بن علي الحديثي', 'الصف الثاني المتوسط', 'فصل 1'),
         ('1167371093', 'يوسف عايد عواد البلوي', 'الصف الثاني المتوسط', 'فصل 3'),
 
-        # 3rd Intermediate - Section 1, 2, 3
-        ('1158966166', 'أصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1'),
+        # 3rd Intermediate
+        ('1158966166', 'أاصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1'),
         ('1156933093', 'تركي عبدالعزيز عبدالله المرزوق', 'الصف الثالث المتوسط', 'فصل 2'),
         ('1160223317', 'تركي عثمان عبدالعزيز العثمان', 'الصف الثالث المتوسط', 'فصل 2'),
         ('1163525544', 'ثامر وليد بن عبدالعزيز الطليحي', 'الصف الثالث المتوسط', 'فصل 3'),
@@ -323,7 +396,7 @@ def fetch_students(grade=None, section=None):
     conn.close()
     return df
 
-# Initialize Session State
+# Initialize Session State for Authentication
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 
@@ -418,14 +491,18 @@ if page == "👨💼 شاشة وكيل شؤون الطلاب":
     if not st.session_state.authenticated:
         st.sidebar.markdown("---")
         st.sidebar.subheader("🔒 دخول وكيل المدرسة")
-        password_input = st.sidebar.text_input("كلمة المرور:", type="password", key="pwd_input")
-        if st.sidebar.button("تسجيل الدخول"):
+        password_input = st.sidebar.text_input("كلمة المرور (9009):", type="password", key="pwd_input_side")
+        if st.sidebar.button("تسجيل الدخول", key="btn_login_side"):
             if password_input == "9009":
                 st.session_state.authenticated = True
                 st.sidebar.success("تم تسجيل الدخول بنجاح!")
                 st.rerun()
             else:
-                st.sidebar.error("كلمة المرور غير صحيحة! يرجى إعادة المحاولة.")
+                st.sidebar.error("كلمة المرور غير صحيحة!")
+    else:
+        if st.sidebar.button("🔒 تسجيل الخروج", key="logout_btn"):
+            st.session_state.authenticated = False
+            st.rerun()
 
 # ==========================================
 # PAGE 1: Teacher Screen
@@ -482,11 +559,21 @@ if page == "👨🏫 شاشة المعلم (رصد مخالفة)":
             st.success("✅ تم إرسال البلاغ بنجاح وتوثيقه في قاعدة البيانات لوكيل شؤون الطلاب!")
 
 # ==========================================
-# PAGE 2: Vice Principal Screen (FIXED MATCHING)
+# PAGE 2: Vice Principal Screen (WITH PASSWORD & DELETE INCIDENT ICON)
 # ==========================================
 elif page == "👨💼 شاشة وكيل شؤون الطلاب":
     if not st.session_state.authenticated:
-        st.warning("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور (9009) في الشريط الجانبي لتسجيل الدخول.")
+        st.error("🔒 هذه الشاشة محمية بكلمة مرور. يرجى إدخال كلمة المرور الصحيحة لتسجيل الدخول.")
+        with st.form("main_login_form"):
+            pwd_main = st.text_input("أدخل كلمة مرور وكيل شؤون الطلاب:", type="password", key="main_pwd_input")
+            btn_login_main = st.form_submit_button("🔓 تسجيل الدخول للشاشة")
+            if btn_login_main:
+                if pwd_main == "9009":
+                    st.session_state.authenticated = True
+                    st.success("تم تسجيل الدخول بنجاح!")
+                    st.rerun()
+                else:
+                    st.error("❌ كلمة المرور غير صحيحة (رمز الدخول الصحيح هو 9009).")
     else:
         st.subheader("👨💼 شاشة وكيل شؤون الطلاب - معالجة البلاغات واتخاذ الإجراءات")
         
@@ -496,7 +583,7 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
         conn.close()
         
         if incidents_df.empty:
-            st.info("لا توجد مخالفات سلوكية مرصودة حالياً.")
+            st.info("لا توجد مخالفات سلوكية مرصودة حالياً في قاعدة البيانات.")
         else:
             pending_df = incidents_df[incidents_df['status'] == 'معلقة (بانتظار الإجراء)']
             processed_df = incidents_df[incidents_df['status'] != 'معلقة (بانتظار الإجراء)']
@@ -543,6 +630,17 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                                     conn.close()
                                     st.success("تم اعتماد الإجراء بنجاح وتحديث حالة التقرير!")
                                     st.rerun()
+                            
+                            st.markdown("---")
+                            # 🗑️ Delete Button Icon for Pending Incidents
+                            if st.button(f"🗑️ حذف هذا البلاغ (رقم #{row['id']}) نهائياً", key=f"del_pending_{row['id']}"):
+                                conn = get_connection()
+                                c = conn.cursor()
+                                c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
+                                conn.commit()
+                                conn.close()
+                                st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح من قاعدة البيانات!")
+                                st.rerun()
 
             with tab2:
                 if processed_df.empty:
@@ -554,6 +652,17 @@ elif page == "👨💼 شاشة وكيل شؤون الطلاب":
                             st.write(f"**المخالفة:** {row['incident_degree']} - {row['incident_type']}")
                             st.write(f"**الإجراء المتخذ:** {row['action_taken']}")
                             st.write(f"**ملاحظات الوكيل:** {row['vice_notes']}")
+                            
+                            st.markdown("---")
+                            # 🗑️ Delete Button Icon for Processed Incidents
+                            if st.button(f"🗑️ حذف هذا البلاغ (رقم #{row['id']}) نهائياً", key=f"del_proc_{row['id']}"):
+                                conn = get_connection()
+                                c = conn.cursor()
+                                c.execute("DELETE FROM incidents WHERE id = ?", (row['id'],))
+                                conn.commit()
+                                conn.close()
+                                st.success(f"🗑️ تم حذف البلاغ رقم #{row['id']} بنجاح من قاعدة البيانات!")
+                                st.rerun()
 
 # ==========================================
 # PAGE 3: Student Search
@@ -702,7 +811,7 @@ elif page == "🖨️ طباعة وتصدير التقرير":
     conn.close()
 
     if inc_df.empty:
-        st.info("لا توجد تقارير مخالفات مسجلة للطباعة.")
+        st.info("لا توجد تقارير مخالفات مسجلة للطباعة حتى الآن.")
     else:
         report_options = [f"تقرير #{r['id']} - الطالب: {r['student_name']} - تاريخ: {r['created_at']}" for _, r in inc_df.iterrows()]
         selected_rep = st.selectbox("اختر التقرير المراد معاينته وطباعته:", report_options)
@@ -714,26 +823,30 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         
         st.markdown("---")
         
-        # Interactive direct print button using Javascript Component
+        # Interactive Direct Print Button
         components.html(
             """
-            <button onclick="window.print()" style="
-                background-color: #1e3c72;
-                color: white;
-                padding: 12px 24px;
-                font-size: 16px;
-                font-weight: bold;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                width: 100%;
-                margin-bottom: 15px;">
-                🖨️ اضغط هنا لطباعة التقرير أو حفظه كـ PDF فوراً
-            </button>
+            <div style="direction: rtl; text-align: center;">
+                <button onclick="window.print()" style="
+                    background-color: #1e3c72;
+                    color: white;
+                    padding: 14px 28px;
+                    font-size: 17px;
+                    font-weight: bold;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    width: 100%;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+                    transition: 0.3s;">
+                    🖨️ اضغط هنا لطباعة التقرير أو حفظه كـ PDF فوراً
+                </button>
+            </div>
             """,
-            height=65
+            height=70
         )
         
+        # Formatted Official Report Template
         st.markdown(f"""
         <div class="print-report">
             <div style="text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 20px;">
@@ -742,7 +855,7 @@ elif page == "🖨️ طباعة وتصدير التقرير":
                 <h4 style="margin:5px 0; color:#333; font-size: 15px;">متوسطة الثغر النموذجية الأهلية - بنين</h4>
                 <hr style="border: 1px solid #1e3c72; margin: 15px 0;">
                 <h2 style="color:#1e3c72; font-size: 18px; font-weight: 800; margin:10px 0;">
-                    تقرير تدوين ومعالجة المخالفات السلوكية والانضباط المدرسي والمحافظة على حقوق المتعلم
+                    تقرير تدوين ومعالجة المخالفات السلوكية والتعليمية والانضباط المدرسي
                 </h2>
             </div>
             
@@ -822,7 +935,14 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             </div>
             
             <div style="text-align: center; margin-top: 25px; padding-top: 12px; border-top: 1px dashed #bbb; font-size: 13px; color: #555;">
-                <b>إعداد وتصميم البرمجية:</b> المعلم / محمد سامي السعيد
+                <b>تصميم وتطوير المعلم / محمد سامي السعيد</b>
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+# Footer Credits at bottom of main application page
+st.markdown("""
+<div class="footer-credits">
+    💻 تصميم وتطوير المعلم / محمد سامي السعيد
+</div>
+""", unsafe_allow_html=True)
