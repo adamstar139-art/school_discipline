@@ -232,7 +232,7 @@ def init_db():
         ('1167371093', 'يوسف عايد عواد البلوي', 'الصف الثاني المتوسط', 'فصل 3', '966531066289'),
 
         # 3rd Intermediate
-        ('1158966166', 'أاصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1', '966552149044'),
+        ('1158966166', 'أصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1', '966552149044'),
         ('1156933093', 'تركي عبدالعزيز عبدالله المرزوق', 'الصف الثالث المتوسط', 'فصل 2', '966501100076'),
         ('1160223317', 'تركي عثمان عبدالعزيز العثمان', 'الصف الثالث المتوسط', 'فصل 2', '966505226153'),
         ('1163525544', 'ثامر وليد بن عبدالعزيز الطليحي', 'الصف الثالث المتوسط', 'فصل 3', '966504437710'),
@@ -321,6 +321,17 @@ def get_student_phone(student_id_or_name):
     if row and row[0]:
         return str(row[0]).strip()
     return ""
+
+def update_student_phone(student_id_or_name, new_phone):
+    """تحديث ورصد رقم جوال ولي الأمر المعتمد في قاعدة البيانات باستعمال هوية الطالب أو اسمه"""
+    if not student_id_or_name:
+        return False
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("UPDATE students SET phone = ? WHERE id = ? OR name = ?", (str(new_phone).strip(), str(student_id_or_name).strip(), str(student_id_or_name).strip()))
+    conn.commit()
+    conn.close()
+    return True
 
 def generate_whatsapp_link(phone_num, rep_id, student_name, grade, section, teacher_name, created_at, incident_degree, incident_type, description, action_taken, vice_notes):
     clean_phone = str(phone_num).strip().replace("+", "").replace(" ", "").replace("-", "")
@@ -795,8 +806,19 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
                             # التعبئة التلقائية لرقم ولي الأمر من قاعدة البيانات
                             st_phone_p = get_student_phone(row['student_id'])
                             p_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر (تعبئة تلقائية):", value=st_phone_p, placeholder="05XXXXXXXX", key=f"wa_p_phone_{row['id']}")
-                            p_wa_url = generate_whatsapp_link(p_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
-                            st.link_button(f"📲 إرسال بلاغ #{row['id']} عبر الواتساب", p_wa_url, use_container_width=True)
+                            
+                            col_p_btn1, col_p_btn2 = st.columns([1, 1])
+                            with col_p_btn1:
+                                if st.button("💾 تحديث رقم ولي الأمر بالقاعدة", key=f"btn_update_p_phone_{row['id']}", use_container_width=True):
+                                    if update_student_phone(row['student_id'], p_phone):
+                                        st.success("✅ تم تحديث رقم ولي الأمر بنجاح!")
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ تعذر تحديث الرقم.")
+                            with col_p_btn2:
+                                p_wa_url = generate_whatsapp_link(p_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
+                                st.link_button(f"📲 إرسال بلاغ #{row['id']} عبر الواتساب", p_wa_url, use_container_width=True)
+
                         with col_p_del:
                             st.write("")
                             st.write("")
@@ -826,8 +848,19 @@ elif page == "👨‍💼 شاشة وكيل شؤون الطلاب":
                             # التعبئة التلقائية لرقم ولي الأمر من قاعدة البيانات
                             st_phone_pr = get_student_phone(row['student_id'])
                             pr_phone = st.text_input("📲 رقم الواتساب للإرسال لولي الأمر (تعبئة تلقائية):", value=st_phone_pr, placeholder="05XXXXXXXX", key=f"wa_pr_phone_{row['id']}")
-                            pr_wa_url = generate_whatsapp_link(pr_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
-                            st.link_button(f"📲 إرسال التقرير #{row['id']} عبر الواتساب", pr_wa_url, use_container_width=True)
+                            
+                            col_pr_btn1, col_pr_btn2 = st.columns([1, 1])
+                            with col_pr_btn1:
+                                if st.button("💾 تحديث رقم ولي الأمر بالقاعدة", key=f"btn_update_pr_phone_{row['id']}", use_container_width=True):
+                                    if update_student_phone(row['student_id'], pr_phone):
+                                        st.success("✅ تم تحديث رقم ولي الأمر بنجاح!")
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ تعذر تحديث الرقم.")
+                            with col_pr_btn2:
+                                pr_wa_url = generate_whatsapp_link(pr_phone, row['id'], row['student_name'], row['grade'], row['section'], row['teacher_name'], row['created_at'], row['incident_degree'], row['incident_type'], row['description'], row['action_taken'], row['vice_notes'])
+                                st.link_button(f"📲 إرسال التقرير #{row['id']} عبر الواتساب", pr_wa_url, use_container_width=True)
+
                         with col_pr_del:
                             st.write("")
                             st.write("")
@@ -868,7 +901,7 @@ elif page == "🔍 البحث الشامل عن طالب":
         else:
             for _, student in st_df.iterrows():
                 st.markdown(f"### 👤 الطالب: {student['name']} (رقم الهوية/الطالب: `{student['id']}`)")
-                st.write(f"**الصف:** {student['grade']} | **الفصل:** {student['section']}")
+                st.write(f"**الصف:** {student['grade']} | **الفصل:** {student['section']} | 📞 **رقم ولي الأمر:** `{student['phone'] if student['phone'] else 'غير مسجل'}`")
                 
                 inc_df = pd.read_sql_query(
                     "SELECT * FROM incidents WHERE student_id = ? ORDER BY id DESC",
@@ -886,9 +919,10 @@ elif page == "🔍 البحث الشامل عن طالب":
 ### PAGE 4: Student Management
 ### ==========================================
 elif page == "⚙️ إدارة بيانات الطلاب":
-    st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - حذف - نقل)")
-    m_tab0, m_tab1, m_tab2, m_tab3 = st.tabs([
+    st.subheader("⚙️ إدارة الطلاب (عرض - إضافة - تعديل الهاتف - حذف - نقل)")
+    m_tab0, m_tab_ph, m_tab1, m_tab2, m_tab3 = st.tabs([
         "📜 عرض قوائم الطلاب والتوزيع",
+        "📱 تحديث رقم ولي الأمر",
         "➕ إضافة طالب جديد",
         "❌ حذف طالب",
         "🔄 نقل طالب من فصل لآخر"
@@ -912,13 +946,34 @@ elif page == "⚙️ إدارة بيانات الطلاب":
             st.warning(f"لا يوجد طلاب مسجلون في ({v_grade} - {v_sec}).")
         else:
             st.success(f"إجمالي عدد الطلاب في ({v_grade} - {v_sec}): {len(v_df)} طالب")
-            st.dataframe(v_df[['id', 'name', 'grade', 'section']].rename(columns={
+            st.dataframe(v_df[['id', 'name', 'grade', 'section', 'phone']].rename(columns={
                 'id': 'رقم الطالب/الهوية',
                 'name': 'اسم الطالب الرباعي',
                 'grade': 'الصف الدراسي',
-                'section': 'الفصل'
+                'section': 'الفصل',
+                'phone': 'رقم جوال ولي الأمر'
             }), use_container_width=True)
+
+    with m_tab_ph:
+        st.markdown("#### 📱 تحديث رقم جوال ولي الأمر المعتمد لطالب")
+        all_st_ph = fetch_students()
+        st_list_ph = [f"{r['name']} ({r['id']}) - الرقم الحالي: {r['phone'] if r['phone'] else 'غير مسجل'}" for _, r in all_st_ph.iterrows()]
+        
+        if st_list_ph:
+            selected_st_ph = st.selectbox("اختر الطالب المراد تحديث رقم ولي أمره:", st_list_ph, key="ph_st_select")
+            st_ph_id = selected_st_ph.split("(")[1].split(")")[0]
+            current_ph = get_student_phone(st_ph_id)
+            new_ph_input = st.text_input("أدخل رقم الجوال الجديد لولي الأمر (مثال: 9665XXXXXXXX):", value=current_ph, key="new_ph_input_tab")
             
+            if st.button("💾 حفظ وتحديث رقم ولي الأمر في قاعدة البيانات", key="btn_update_ph_tab"):
+                if update_student_phone(st_ph_id, new_ph_input):
+                    st.success("✅ تم تحديث رقم جوال ولي الأمر بنجاح في قاعدة البيانات!")
+                    st.rerun()
+                else:
+                    st.error("❌ تعذر تحديث الرقم!")
+        else:
+            st.info("لا يوجد طلاب مسجلون في قاعدة البيانات.")
+
     with m_tab1:
         st.markdown("#### إضافة طالب جديد لقاعدة البيانات")
         with st.form("add_student_form", clear_on_submit=True):
@@ -1039,21 +1094,31 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             # التعبئة التلقائية لرقم جوال ولي الأمر المعتمد من قاعدة البيانات
             st_parent_phone = get_student_phone(rep_data['student_id'])
             phone_input = st.text_input("📲 رقم جوال ولي الأمر لإرسال التقرير عبر الواتساب (تعبئة تلقائية):", value=st_parent_phone, placeholder="05XXXXXXXX", key=f"phone_rep_{selected_id}")
-            wa_url = generate_whatsapp_link(
-                phone_input, 
-                rep_data['id'], 
-                rep_data['student_name'], 
-                rep_data['grade'], 
-                rep_data['section'], 
-                rep_data['teacher_name'], 
-                rep_data['created_at'], 
-                rep_data['incident_degree'], 
-                rep_data['incident_type'], 
-                rep_data['description'], 
-                rep_data['action_taken'], 
-                rep_data['vice_notes']
-            )
-            st.link_button("📲 إرسال التقرير عبر الواتساب (WhatsApp)", wa_url, use_container_width=True)
+            
+            col_rep_btn1, col_rep_btn2 = st.columns([1, 1])
+            with col_rep_btn1:
+                if st.button("💾 تحديث الرقم بالقاعدة", key=f"btn_update_rep_phone_{selected_id}", use_container_width=True):
+                    if update_student_phone(rep_data['student_id'], phone_input):
+                        st.success("✅ تم تحديث رقم ولي الأمر بنجاح!")
+                        st.rerun()
+                    else:
+                        st.error("❌ تعذر تحديث الرقم.")
+            with col_rep_btn2:
+                wa_url = generate_whatsapp_link(
+                    phone_input, 
+                    rep_data['id'], 
+                    rep_data['student_name'], 
+                    rep_data['grade'], 
+                    rep_data['section'], 
+                    rep_data['teacher_name'], 
+                    rep_data['created_at'], 
+                    rep_data['incident_degree'], 
+                    rep_data['incident_type'], 
+                    rep_data['description'], 
+                    rep_data['action_taken'], 
+                    rep_data['vice_notes']
+                )
+                st.link_button("📲 إرسال التقرير عبر الواتساب", wa_url, use_container_width=True)
         
         # Formatted Official Report Template
         action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة'
