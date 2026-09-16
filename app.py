@@ -1,13 +1,14 @@
 import os
 import sqlite3
 import tempfile
+import textwrap
 from datetime import datetime
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
 # ==========================================
-# 1. Page Configuration & Custom Styling (RTL)
+# 1. Page Configuration & Custom Styling (RTL & Clean Print)
 # ==========================================
 st.set_page_config(
     page_title="تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي - متوسطة الثغر النموذجية الأهلية",
@@ -16,109 +17,108 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Global RTL CSS & Responsive Layout
+# Global CSS Rules for RTL and Clean Printing
 st.markdown("""
 <style>
-    /* Global RTL Direction & Formatting */
-    html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stSidebar"], [data-testid="stHeader"] {
-        direction: rtl !important;
-        text-align: right !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    p, h1, h2, h3, h4, h5, h6, span, div, label, input, textarea, select, button, [data-baseweb="tab"] {
-        direction: rtl !important;
-        text-align: right !important;
-    }
-    .stSelectbox, .stTextInput, .stTextArea, .stButton, .stForm, [data-testid="stSidebarNav"] {
-        direction: rtl !important;
-        text-align: right !important;
-    }
-    .stDataFrame, .stTable {
-        direction: rtl !important;
-    }
-    div[role="radiogroup"] {
-        direction: rtl !important;
-        text-align: right !important;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        direction: rtl !important;
-        justify-content: flex-start !important;
-    }
+/* Global RTL Direction & Text Alignment */
+html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stSidebar"], [data-testid="stHeader"] {
+    direction: rtl !important;
+    text-align: right !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+p, h1, h2, h3, h4, h5, h6, span, div, label, input, textarea, select, button, [data-baseweb="tab"] {
+    direction: rtl !important;
+    text-align: right !important;
+}
+.stSelectbox, .stTextInput, .stTextArea, .stButton, .stForm, [data-testid="stSidebarNav"] {
+    direction: rtl !important;
+    text-align: right !important;
+}
+.stDataFrame, .stTable {
+    direction: rtl !important;
+}
+div[role="radiogroup"] {
+    direction: rtl !important;
+    text-align: right !important;
+}
+.stTabs [data-baseweb="tab-list"] {
+    direction: rtl !important;
+    justify-content: flex-start !important;
+}
 
-    /* Header Banner Styling */
-    .header-banner {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        color: white;
-        padding: 22px;
-        border-radius: 12px;
-        text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        border: 2px solid #ffffff;
-    }
-    .header-banner h2 {
-        color: #ffffff !important;
-        font-size: 22px !important;
-        font-weight: 800 !important;
-        margin: 0 0 5px 0 !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-    .header-banner h3 {
-        color: #f0f4f8 !important;
-        font-size: 17px !important;
-        margin: 0 0 8px 0 !important;
-    }
-    .header-banner h4 {
-        color: #ffd700 !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        margin: 8px 0 0 0 !important;
-    }
+/* Header Banner Styling */
+.header-banner {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 22px;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 2px solid #ffffff;
+}
+.header-banner h2 {
+    color: #ffffff !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    margin: 0 0 5px 0 !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+.header-banner h3 {
+    color: #f0f4f8 !important;
+    font-size: 17px !important;
+    margin: 0 0 8px 0 !important;
+}
+.header-banner h4 {
+    color: #ffd700 !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    margin: 8px 0 0 0 !important;
+}
 
-    /* Print Template Container */
-    .print-report {
-        background-color: #ffffff;
-        padding: 30px;
-        border-radius: 12px;
-        border: 2px solid #1e3c72;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        direction: rtl !important;
-        text-align: right !important;
-        color: #2c3e50;
-    }
-    .table-container table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .table-container th, .table-container td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
-    .table-container th { background-color: #f1f5f9; color: #1e3c72; font-weight: bold; }
-    .signatures-grid { display: flex; justify-content: space-between; margin-top: 35px; text-align: center; }
-    .sig-col { width: 23%; }
-    
-    .footer-credits {
-        text-align: center;
-        margin-top: 30px;
-        padding: 15px;
-        background-color: #f8fafc;
-        border-top: 2px solid #e2e8f0;
-        border-radius: 8px;
-        color: #1e3c72;
-        font-weight: bold;
-        font-size: 15px;
-    }
+/* Print Template Container */
+.print-report {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    border: 2px solid #1e3c72;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    direction: rtl !important;
+    text-align: right !important;
+    color: #2c3e50;
+}
+.table-container table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.table-container th, .table-container td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
+.table-container th { background-color: #f1f5f9; color: #1e3c72; font-weight: bold; }
+.signatures-grid { display: flex; justify-content: space-between; margin-top: 35px; text-align: center; }
+.sig-col { width: 23%; }
 
-    @media print {
-        body * { visibility: hidden; }
-        .print-report, .print-report * { visibility: visible; }
-        .print-report { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
-        .no-print { display: none !important; }
-    }
+/* Footer Credits */
+.footer-credits {
+    text-align: center;
+    margin-top: 40px;
+    padding: 15px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #475569;
+    font-weight: bold;
+}
+
+@media print {
+    body * { visibility: hidden !important; }
+    .print-report, .print-report * { visibility: visible !important; }
+    .print-report { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; border: none !important; box-shadow: none !important; }
+    .no-print, [data-testid="stSidebar"], [data-testid="stHeader"], .header-banner, .footer-credits { display: none !important; }
+}
 </style>
 """, unsafe_allow_html=True)
 
 # Main Top Header Banner
 st.markdown("""
 <div class="header-banner">
-    <h2>المملكة العربية السعودية - وزارة التعليم</h2>
-    <h3>الإدارة العامة للتعليم بمنطقة الرياض | متوسطة الثغر النموذجية الأهلية - بنين</h3>
-    <h4>تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي</h4>
+<h2>المملكة العربية السعودية - وزارة التعليم</h2>
+<h3>الإدارة العامة للتعليم بمنطقة الرياض | متوسطة الثغر النموذجية الأهلية - بنين</h3>
+<h4>تدوين المخالفات السلوكية والتعليمية والانضباط المدرسي</h4>
 </div>
 """, unsafe_allow_html=True)
 
@@ -296,7 +296,7 @@ def init_db():
         ('1167371093', 'يوسف عايد عواد البلوي', 'الصف الثاني المتوسط', 'فصل 3'),
 
         # 3rd Intermediate
-        ('1158966166', 'أاصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1'),
+        ('1158966166', 'أصيل ناصر بن محمد مذكور', 'الصف الثالث المتوسط', 'فصل 1'),
         ('1156933093', 'تركي عبدالعزيز عبدالله المرزوق', 'الصف الثالث المتوسط', 'فصل 2'),
         ('1160223317', 'تركي عثمان عبدالعزيز العثمان', 'الصف الثالث المتوسط', 'فصل 2'),
         ('1163525544', 'ثامر وليد بن عبدالعزيز الطليحي', 'الصف الثالث المتوسط', 'فصل 3'),
@@ -823,11 +823,11 @@ elif page == "🖨️ طباعة وتصدير التقرير":
         
         st.markdown("---")
         
-        # Interactive Direct Print Button
+        # Interactive Direct Print Button using window.parent.print()
         components.html(
             """
             <div style="direction: rtl; text-align: center;">
-                <button onclick="window.print()" style="
+                <button onclick="window.parent.print()" style="
                     background-color: #1e3c72;
                     color: white;
                     padding: 14px 28px;
@@ -846,103 +846,107 @@ elif page == "🖨️ طباعة وتصدير التقرير":
             height=70
         )
         
-        # Formatted Official Report Template
-        st.markdown(f"""
-        <div class="print-report">
-            <div style="text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 20px;">
-                <h3 style="margin:0; color:#1e3c72; font-size: 19px;">المملكة العربية السعودية - وزارة التعليم</h3>
-                <h4 style="margin:5px 0; color:#333; font-size: 15px;">الإدارة العامة للتعليم بمنطقة الرياض</h4>
-                <h4 style="margin:5px 0; color:#333; font-size: 15px;">متوسطة الثغر النموذجية الأهلية - بنين</h4>
-                <hr style="border: 1px solid #1e3c72; margin: 15px 0;">
-                <h2 style="color:#1e3c72; font-size: 18px; font-weight: 800; margin:10px 0;">
-                    تقرير تدوين ومعالجة المخالفات السلوكية والتعليمية والانضباط المدرسي
-                </h2>
-            </div>
-            
-            <div class="table-container">
-                <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;" border="1" cellpadding="8">
-                    <tr style="background-color: #f2f5f9;">
-                        <th style="width: 20%;">رقم التقرير:</th>
-                        <td style="width: 30%;">{rep_data['id']}</td>
-                        <th style="width: 20%;">تاريخ الرصد:</th>
-                        <td style="width: 30%;">{rep_data['created_at']}</td>
-                    </tr>
-                    <tr>
-                        <th>اسم الطالب:</th>
-                        <td><b>{rep_data['student_name']}</b></td>
-                        <th>رقم الطالب / الهوية:</th>
-                        <td>{rep_data['student_id']}</td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>الصف الدراسي:</th>
-                        <td>{rep_data['grade']}</td>
-                        <th>الفصل (الشعبة):</th>
-                        <td>{rep_data['section']}</td>
-                    </tr>
-                    <tr>
-                        <th>المعلم الراصد:</th>
-                        <td>{rep_data['teacher_name']}</td>
-                        <th>الحصة الدراسية:</th>
-                        <td>{rep_data['period']}</td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>درجة المشكلة:</th>
-                        <td colspan="3"><b style="color: #c0392b;">{rep_data['incident_degree']}</b></td>
-                    </tr>
-                    <tr>
-                        <th>المشكلة السلوكية:</th>
-                        <td colspan="3">{rep_data['incident_type']}</td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>وصف المعلم للمشكلة:</th>
-                        <td colspan="3">{rep_data['description']}</td>
-                    </tr>
-                    <tr>
-                        <th>الإجراء المتخذ (الوكيل):</th>
-                        <td colspan="3"><b style="color: #27ae60;">{rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة'}</b></td>
-                    </tr>
-                    <tr style="background-color: #f2f5f9;">
-                        <th>ملاحظات الوكيل:</th>
-                        <td colspan="3">{rep_data['vice_notes'] if rep_data['vice_notes'] else 'لا توجد ملاحظات إضافية'}</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div style="margin-top: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background-color: #fafafa;">
-                <h4 style="margin-top:0; color:#1e3c72; text-align: center;">الاعتمادات والتوقيعات الرسمية</h4>
-                <div class="signatures-grid">
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">المعلم الراصد</p>
-                        <p style="margin: 0; color: #555;">{rep_data['teacher_name']}</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">الطالب المخالف</p>
-                        <p style="margin: 0; color: #555;">{rep_data['student_name']}</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">وكيل شؤون الطلاب</p>
-                        <p style="margin: 0; color: #555;">صالح بن عبدالله الدعجاني</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                    <div class="sig-col">
-                        <p style="font-weight: bold; margin-bottom: 5px;">مدير المدرسة</p>
-                        <p style="margin: 0; color: #555;">إبراهيم بن موسى التميمي</p>
-                        <p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 25px; padding-top: 12px; border-top: 1px dashed #bbb; font-size: 13px; color: #555;">
-                <b>تصميم وتطوير المعلم / محمد سامي السعيد</b>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        # Formatted Official Report Template (Flush-Left HTML to Prevent Markdown Code Blocks)
+        action_str = rep_data['action_taken'] if rep_data['action_taken'] else 'قيد المعالجة'
+        notes_str = rep_data['vice_notes'] if rep_data['vice_notes'] else 'لا توجد ملاحظات إضافية'
+
+        report_html = f"""
+<div class="print-report">
+<div style="text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 20px;">
+<h3 style="margin:0; color:#1e3c72; font-size: 19px;">المملكة العربية السعودية - وزارة التعليم</h3>
+<h4 style="margin:5px 0; color:#333; font-size: 15px;">الإدارة العامة للتعليم بمنطقة الرياض</h4>
+<h4 style="margin:5px 0; color:#333; font-size: 15px;">متوسطة الثغر النموذجية الأهلية - بنين</h4>
+<hr style="border: 1px solid #1e3c72; margin: 15px 0;">
+<h2 style="color:#1e3c72; font-size: 18px; font-weight: 800; margin:10px 0;">
+تقرير تدوين ومعالجة المخالفات السلوكية والتعليمية والانضباط المدرسي
+</h2>
+</div>
+
+<div class="table-container">
+<table style="width:100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;" border="1" cellpadding="8">
+<tr style="background-color: #f2f5f9;">
+<th style="width: 20%;">رقم التقرير:</th>
+<td style="width: 30%;">{rep_data['id']}</td>
+<th style="width: 20%;">تاريخ الرصد:</th>
+<td style="width: 30%;">{rep_data['created_at']}</td>
+</tr>
+<tr>
+<th>اسم الطالب:</th>
+<td><b>{rep_data['student_name']}</b></td>
+<th>رقم الطالب / الهوية:</th>
+<td>{rep_data['student_id']}</td>
+</tr>
+<tr style="background-color: #f2f5f9;">
+<th>الصف الدراسي:</th>
+<td>{rep_data['grade']}</td>
+<th>الفصل (الشعبة):</th>
+<td>{rep_data['section']}</td>
+</tr>
+<tr>
+<th>المعلم الراصد:</th>
+<td>{rep_data['teacher_name']}</td>
+<th>الحصة الدراسية:</th>
+<td>{rep_data['period']}</td>
+</tr>
+<tr style="background-color: #f2f5f9;">
+<th>درجة المشكلة:</th>
+<td colspan="3"><b style="color: #c0392b;">{rep_data['incident_degree']}</b></td>
+</tr>
+<tr>
+<th>المشكلة السلوكية:</th>
+<td colspan="3">{rep_data['incident_type']}</td>
+</tr>
+<tr style="background-color: #f2f5f9;">
+<th>وصف المعلم للمشكلة:</th>
+<td colspan="3">{rep_data['description']}</td>
+</tr>
+<tr>
+<th>الإجراء المتخذ (الوكيل):</th>
+<td colspan="3"><b style="color: #27ae60;">{action_str}</b></td>
+</tr>
+<tr style="background-color: #f2f5f9;">
+<th>ملاحظات الوكيل:</th>
+<td colspan="3">{notes_str}</td>
+</tr>
+</table>
+</div>
+
+<div style="margin-top: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background-color: #fafafa;">
+<h4 style="margin-top:0; color:#1e3c72; text-align: center;">الاعتمادات والتوقيعات الرسمية</h4>
+<div class="signatures-grid">
+<div class="sig-col">
+<p style="font-weight: bold; margin-bottom: 5px;">المعلم الراصد</p>
+<p style="margin: 0; color: #555;">{rep_data['teacher_name']}</p>
+<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
+</div>
+<div class="sig-col">
+<p style="font-weight: bold; margin-bottom: 5px;">الطالب المخالف</p>
+<p style="margin: 0; color: #555;">{rep_data['student_name']}</p>
+<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
+</div>
+<div class="sig-col">
+<p style="font-weight: bold; margin-bottom: 5px;">وكيل شؤون الطلاب</p>
+<p style="margin: 0; color: #555;">صالح بن عبدالله الدعجاني</p>
+<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
+</div>
+<div class="sig-col">
+<p style="font-weight: bold; margin-bottom: 5px;">مدير المدرسة</p>
+<p style="margin: 0; color: #555;">إبراهيم بن موسى التميمي</p>
+<p style="margin-top: 25px; border-top: 1px solid #999; padding-top: 5px;">التوقيع: .....................</p>
+</div>
+</div>
+</div>
+
+<div style="text-align: center; margin-top: 25px; padding-top: 12px; border-top: 1px dashed #bbb; font-size: 13px; color: #555;">
+<b>تصميم وتطوير المعلم / محمد سامي السعيد</b>
+</div>
+</div>
+"""
+        st.markdown(report_html, unsafe_allow_html=True)
 
 # Footer Credits at bottom of main application page
 st.markdown("""
 <div class="footer-credits">
-    💻 تصميم وتطوير المعلم / محمد سامي السعيد
+💻 تصميم وتطوير المعلم / محمد سامي السعيد
 </div>
 """, unsafe_allow_html=True)
